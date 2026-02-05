@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FH Liquor Inventory</title>
+  <style>
+    :root{
+      --bg:#0b0f19; --panel:#121a2a; --panel2:#0f1626; --text:#e7ecff; --muted:#aab3d6;
+      --border:rgba(255,255,255,.12); --accent:#6ea8ff; --good:#52d19a; --warn:#ffcc66; --bad:#ff6b6b;
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); background:radial-gradient(1200px 700px at 10% 0%, rgba(110,168,255,.18), transparent 50%),
+      radial-gradient(900px 600px at 90% 20%, rgba(82,209,154,.12), transparent 55%),
+      var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1200px; margin:28px auto; padding:0 18px 40px;}
+    header{
+      display:flex; gap:14px; align-items:flex-end; justify-content:space-between; margin-bottom:16px;
+    }
+    .title{display:flex; flex-direction:column; gap:6px;}
+    h1{font-size:22px; margin:0; letter-spacing:.2px}
+    .sub{color:var(--muted); font-size:13px}
+    .pillbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end}
+    .pill{
+      border:1px solid var(--border); background:rgba(255,255,255,.04);
+      padding:8px 10px; border-radius:999px; font-size:12px; color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .pill b{color:var(--text); font-weight:600}
+    .btn{
+      appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.06);
+      color:var(--text); padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:600;
+      transition:transform .02s ease, background .15s ease, border-color .15s ease;
+      display:inline-flex; gap:8px; align-items:center;
+    }
+    .btn:hover{background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.18)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:rgba(110,168,255,.18); border-color:rgba(110,168,255,.35)}
+    .btn.primary:hover{background:rgba(110,168,255,.24)}
+    .btn.danger{background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.30)}
+    .btn.ghost{background:transparent}
+    .grid{display:grid; grid-template-columns: 280px 1fr; gap:14px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:rgba(0,0,0,.14);
+    }
+    .card .hd h2{font-size:14px; margin:0; letter-spacing:.3px}
+    .card .bd{padding:14px}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tab{
+      padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer; font-weight:700; font-size:12px;
+    }
+    .tab.active{background:rgba(110,168,255,.18); border-color:rgba(110,168,255,.35); color:var(--text)}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+    .field{display:flex; flex-direction:column; gap:6px; min-width:180px}
+    input, select{
+      width:100%; padding:10px 11px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(0,0,0,.18); color:var(--text); outline:none;
+    }
+    input::placeholder{color:rgba(231,236,255,.35)}
+    input:focus, select:focus{border-color:rgba(110,168,255,.55)}
+    .hint{color:var(--muted); font-size:12px; line-height:1.35}
+    .divider{height:1px; background:var(--border); margin:12px 0}
+    .tablewrap{overflow:auto; border-radius:14px; border:1px solid var(--border)}
+    table{
+      width:100%; border-collapse:separate; border-spacing:0; min-width:880px;
+      background:rgba(0,0,0,.18);
+    }
+    th, td{
+      padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.08); vertical-align:middle;
+      font-size:13px;
+    }
+    th{
+      position:sticky; top:0; background:rgba(18,26,42,.92); z-index:1;
+      text-align:left; color:var(--muted); font-size:12px; letter-spacing:.25px;
+    }
+    tr:hover td{background:rgba(255,255,255,.03)}
+    .right{text-align:right}
+    .mono{font-family:var(--mono)}
+    .badge{
+      padding:4px 8px; border-radius:999px; border:1px solid var(--border);
+      font-size:11px; color:var(--muted); background:rgba(255,255,255,.04); display:inline-flex; gap:6px; align-items:center;
+    }
+    .badge.good{border-color:rgba(82,209,154,.35); background:rgba(82,209,154,.12); color:#bff6dc}
+    .badge.bad{border-color:rgba(255,107,107,.35); background:rgba(255,107,107,.12); color:#ffd0d0}
+    .badge.warn{border-color:rgba(255,204,102,.35); background:rgba(255,204,102,.12); color:#ffe3b0}
+    .kpis{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px}
+    @media (max-width: 980px){ .kpis{grid-template-columns:repeat(2, 1fr)} }
+    .kpi{
+      padding:12px; border-radius:14px; border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+    }
+    .kpi .t{font-size:12px; color:var(--muted); margin-bottom:6px}
+    .kpi .v{font-size:16px; font-weight:800}
+    .kpi .s{font-size:12px; color:var(--muted); margin-top:2px}
+    .actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end}
+    .toast{
+      position:fixed; right:14px; bottom:14px; padding:12px 12px;
+      border-radius:14px; border:1px solid var(--border);
+      background:rgba(18,26,42,.92); box-shadow:var(--shadow);
+      color:var(--text); display:none; max-width:340px;
+    }
+    .toast.show{display:block}
+    .toast .msg{font-size:13px; line-height:1.35}
+  
+    /* Keep the right-most Actions column visible */
+    .tablewrap{ overflow:auto; border-radius:14px; border:1px solid var(--border); }
+    table{ width:100%; }
+    th.sticky-r, td.sticky-r{
+      position: sticky;
+      right: 0;
+      background: rgba(18,26,42,.96);
+      box-shadow: -10px 0 14px rgba(0,0,0,.25);
+      z-index: 2;
+    }
+    td.sticky-r{ background: rgba(0,0,0,.28); }
+
+  
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:18px; }
+  .modalCard{ width:min(560px, 96vw); background:rgba(20,22,26,.98); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:16px 16px 14px; box-shadow:0 18px 60px rgba(0,0,0,.55); }
+
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>FH Liquor Inventory <span class="badge warn"></span></h1>
+      <div class="sub">Live (GitHub Pages) • Optional Cloud Sync (Supabase).</div>
+    </div>
+    <div class="pillbar">
+      <div class="pill">Month: <b id="pillMonth">—</b></div>
+      <div class="pill">Items: <b id="pillItems">0</b></div>
+      <button class="btn ghost" id="btnExportAll">Export CSV</button>
+      
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="hd"><h2>Navigation</h2></div>
+      <div class="bd">
+        <div class="tabs">
+          <button class="tab active" data-tab="items">Items</button>
+          <button class="tab" data-tab="counts">Counts</button>
+          <button class="tab" data-tab="reports">Reports</button>
+</div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label for="monthSelect">Inventory Month</label>
+          <select id="monthSelect"></select>
+          <div class="hint">Pick the month you’re counting. Counts are stored per month.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="hint">
+          <b>Workflow:</b><br>
+          1) Keep your master list clean in <b>Items</b><br>
+          2) Once/month, enter counts in <b>Counts</b><br>
+          3) Send Accounting the <b>Grand Total Value</b> from <b>Reports</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd">
+        <h2 id="mainTitle">Items</h2>
+        <div class="actions" id="mainActions"></div>
+      </div>
+      <div class="bd" id="mainBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="msg" id="toastMsg"></div></div>
+
+<script>
+
+  // ===== Month helpers =====
+  function isValidMonth(s){
+    return typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
+  }
+  function yyyymmFromDate(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  }
+  function addMonths(yyyymm, delta){
+    if(!isValidMonth(yyyymm)) return yyyymmFromDate(new Date());
+    const [y, m] = yyyymm.split("-").map(Number);
+    const d = new Date(y, m - 1, 1);
+    d.setMonth(d.getMonth() + delta);
+    return yyyymmFromDate(d);
+  }
+  // =========================
+
+
+  // =============================
+  // SUPABASE (CLOUD SYNC) SETTINGS
+  // =============================
+  // Paste your Supabase Project URL + anon key below (Supabase Dashboard → Project Settings → API)
+  const SUPABASE_URL = "PASTE_SUPABASE_URL_HERE";
+  const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY_HERE";
+  const CLOUD_ROW_ID = 1; // single shared row
+
+  const hasSupabaseConfig = () => SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 30;
+
+  let sb = null;
+  let cloudUser = null;
+  let cloudMode = false;
+
+  async function initSupabase(){
+    const statusEl = document.getElementById("cloudStatus");
+    const authBtn = document.getElementById("authBtn");
+    if(!statusEl || !authBtn) return;
+
+    if(!hasSupabaseConfig()){
+      statusEl.style.display="none";
+      authBtn.style.display="none";
+      return;
+    }
+
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    statusEl.style.display="inline-flex";
+    authBtn.style.display="inline-flex";
+
+    wireAuthModal();
+
+    try{
+      const { data } = await sb.auth.getSession();
+      cloudUser = data?.session?.user || null;
+      cloudMode = !!cloudUser;
+      syncCloudUI();
+
+      if(cloudMode){
+        await cloudLoadIntoState();
+        render(); initSupabase();
+      }
+    }catch(e){
+      console.warn("Supabase session error", e);
+      cloudMode = false;
+      syncCloudUI();
+    }
+
+    sb.auth.onAuthStateChange(async (_event, session)=>{
+      cloudUser = session?.user || null;
+      cloudMode = !!cloudUser;
+      syncCloudUI();
+      if(cloudMode){
+        await cloudLoadIntoState();
+        render();
+      }
+    });
+  }
+
+  function syncCloudUI(){
+    const statusEl = document.getElementById("cloudStatus");
+    const authBtn = document.getElementById("authBtn");
+    if(!statusEl || !authBtn) return;
+    if(!hasSupabaseConfig()){
+      statusEl.style.display="none";
+      authBtn.style.display="none";
+      return;
+    }
+    statusEl.style.display="inline-flex";
+    authBtn.style.display="inline-flex";
+    if(cloudMode){
+      statusEl.classList.add("good");
+      statusEl.textContent = "Cloud: Signed in";
+      authBtn.textContent = "Sign out";
+    }else{
+      statusEl.classList.remove("good");
+      statusEl.textContent = "Cloud: Not signed in";
+      authBtn.textContent = "Sign in";
+    }
+  }
+
+  async function cloudLoadIntoState(){
+    if(!sb) return;
+    try{
+      const { data, error } = await sb
+        .from("inventory_state")
+        .select("state_json")
+        .eq("id", CLOUD_ROW_ID)
+        .single();
+      if(error){
+        console.warn("Cloud load error:", error);
+        toast("Cloud load failed (using local)");
+        return;
+      }
+      if(data && data.state_json && typeof data.state_json === "object"){
+        state = data.state_json;
+        // Ensure required structure
+        if(!Array.isArray(state.items)) state.items = [];
+        if(!state.counts || typeof state.counts !== "object") state.counts = {};
+        if(!state.monthPrices || typeof state.monthPrices !== "object") state.monthPrices = {};
+        if(!state.finalizedMonths || typeof state.finalizedMonths !== "object") state.finalizedMonths = {};
+        if(!state.settings) state.settings = {monthsToShow:12, categories: DEFAULT_CATEGORIES.slice(), lastCategory:null};
+      }
+    }catch(e){
+      console.warn("Cloud load exception:", e);
+      toast("Cloud load failed (using local)");
+    }
+  }
+
+  async function cloudSaveState(){
+    if(!cloudMode || !sb) return;
+    try{
+      const payload = { id: CLOUD_ROW_ID, state_json: state, updated_by: cloudUser?.id || null };
+      const { error } = await sb.from("inventory_state").upsert(payload, { onConflict:"id" });
+      if(error){
+        console.warn("Cloud save error:", error);
+        toast("Cloud save failed (saved locally)");
+      }
+    }catch(e){
+      console.warn("Cloud save exception:", e);
+      toast("Cloud save failed (saved locally)");
+    }
+  }
+
+  function wireAuthModal(){
+    const authBtn = document.getElementById("authBtn");
+    const modal = document.getElementById("authModal");
+    const closeBtn = document.getElementById("authClose");
+    const sendBtn = document.getElementById("authSend");
+    const emailInp = document.getElementById("authEmail");
+    const msg = document.getElementById("authMsg");
+    if(!authBtn || !modal || !sendBtn || !emailInp) return;
+
+    function openModal(){
+      msg.textContent = "";
+      modal.style.display = "flex";
+      setTimeout(()=>emailInp.focus(), 50);
+    }
+    function closeModal(){ modal.style.display="none"; }
+
+    closeBtn?.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e)=>{ if(e.target===modal) closeModal(); });
+
+    authBtn.addEventListener("click", async ()=>{
+      if(!hasSupabaseConfig()) return;
+      if(cloudMode){
+        await sb.auth.signOut();
+        cloudMode = false;
+        cloudUser = null;
+        syncCloudUI();
+        toast("Signed out");
+      }else{
+        openModal();
+      }
+    });
+
+    sendBtn.addEventListener("click", async ()=>{
+      const email = (emailInp.value||"").trim();
+      if(!email){ msg.textContent="Enter an email address."; return; }
+      msg.textContent = "Sending magic link…";
+      const redirectTo = window.location.href.split("#")[0];
+      const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: redirectTo }});
+      msg.textContent = error ? ("Error: " + error.message) : "Check your email for the sign-in link.";
+    });
+  }
+
+
+(() => {
+  const STORE_KEY = "fh_inv_live_v8_clean";
+  // Categories are user-managed (stored in state.settings.categories)
+  const DEFAULT_CATEGORIES = [
+    "White Wine","Red Wine","Sparkling Wine",
+    "Beer",
+    "Vodka","Whiskey","Tequila","Gin","Rum","Cordials/Other"
+  ];
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const fmtMoney = (n) => Number(n||0).toLocaleString(undefined,{style:"currency",currency:"USD"});
+  const fmtNum = (n) => Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+  const toast = (msg) => { $("#toastMsg").textContent = msg; $("#toast").classList.add("show"); clearTimeout(toast._t);
+    toast._t=setTimeout(()=>$("#toast").classList.remove("show"),2200); };
+  const uuid = () => "i_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+  const yyyymmFromDate = (d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  const prevMonth = (yyyymm)=>{ const [y,m]=yyyymm.split("-").map(Number); const dt=new Date(y,m-1,1); dt.setMonth(dt.getMonth()-1); return yyyymmFromDate(dt); };
+  const escapeHtml = (s)=>String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  const round2 = (n)=>Math.round((Number(n||0)+Number.EPSILON)*100)/100;
+  
+  const isSpiritType = (cat) => ["Vodka","Whiskey","Tequila","Gin","Rum","Cordials/Other"].includes(cat);
+
+  const catOrderIndex = (cat)=>{
+    const cats = (state?.settings?.categories || DEFAULT_CATEGORIES);
+    const idx = cats.indexOf(cat);
+    return idx === -1 ? 999 : idx;
+  };
+
+  function defaultState(){
+    const now=new Date(); const thisMonth=yyyymmFromDate(now); const lastMonth=prevMonth(thisMonth);    const items=[
+      {id:uuid(),name:"CAVIT PG",category:"White Wine",unit_cost:6.11,uom:"btl",active:true},
+      {id:uuid(),name:"KIM CRAWFORD SB large",category:"White Wine",unit_cost:13.50,uom:"btl",active:true},
+      {id:uuid(),name:"KIM CRAWFORD SB small",category:"White Wine",unit_cost:13.50,uom:"btl",active:true},
+      {id:uuid(),name:"KOSHER CHARD",category:"White Wine",unit_cost:10.21,uom:"btl",active:true},
+      {id:uuid(),name:"LOUIS JADOT CHARD",category:"White Wine",unit_cost:13.09,uom:"btl",active:true},
+      {id:uuid(),name:"MINUTY ROSE",category:"White Wine",unit_cost:16.24,uom:"btl",active:true},
+      {id:uuid(),name:"ROB MONDAVI PRIV CHARD",category:"White Wine",unit_cost:18.66,uom:"btl",active:true},
+      {id:uuid(),name:"ROBERT MONDAVI CHARD",category:"White Wine",unit_cost:14.72,uom:"btl",active:true},
+      {id:uuid(),name:"STAGS LEAP CHARD",category:"White Wine",unit_cost:19.79,uom:"btl",active:true},
+      {id:uuid(),name:"SYCAMORE LANE  Chard",category:"White Wine",unit_cost:6.46,uom:"btl",active:true},
+      {id:uuid(),name:"SYCAMORE LANE PINOT GRIGIO",category:"White Wine",unit_cost:8.66,uom:"btl",active:true},
+      {id:uuid(),name:"KOSHER CAB",category:"Red Wine",unit_cost:10.21,uom:"btl",active:true},
+      {id:uuid(),name:"STAGS LEAP CAB",category:"Red Wine",unit_cost:23.22,uom:"btl",active:true},
+      {id:uuid(),name:"SYCAMORE LANE CAB",category:"Red Wine",unit_cost:5.54,uom:"btl",active:true},
+      {id:uuid(),name:"SYCAMORE LANE Merlot",category:"Red Wine",unit_cost:11.00,uom:"btl",active:true},
+      {id:uuid(),name:"Two Vines PINOT NOIR",category:"Red Wine",unit_cost:14.09,uom:"btl",active:true},
+      {id:uuid(),name:"BARON KOSHER CHAMPAGNE",category:"Sparkling Wine",unit_cost:12.66,uom:"btl",active:true},
+      {id:uuid(),name:"Louis Pommery",category:"Sparkling Wine",unit_cost:0.00,uom:"btl",active:true},
+      {id:uuid(),name:"VEUVE CLIQUOT",category:"Sparkling Wine",unit_cost:27.00,uom:"btl",active:true},
+      {id:uuid(),name:"Yulupa PROSECCO",category:"Sparkling Wine",unit_cost:13.66,uom:"btl",active:true},
+      {id:uuid(),name:"Abita Light",category:"Beer",unit_cost:1.29,uom:"cs",active:true},
+      {id:uuid(),name:"AMSTEL",category:"Beer",unit_cost:1.33,uom:"cs",active:true},
+      {id:uuid(),name:"Angry Orchard",category:"Beer",unit_cost:1.29,uom:"cs",active:true},
+      {id:uuid(),name:"BLUE MOON",category:"Beer",unit_cost:1.65,uom:"cs",active:true},
+      {id:uuid(),name:"BROOKLYN",category:"Beer",unit_cost:1.35,uom:"cs",active:true},
+      {id:uuid(),name:"DOG FISH",category:"Beer",unit_cost:1.54,uom:"cs",active:true},
+      {id:uuid(),name:"HEINEKEN",category:"Beer",unit_cost:1.33,uom:"cs",active:true},
+      {id:uuid(),name:"Lagunitas",category:"Beer",unit_cost:1.35,uom:"cs",active:true},
+      {id:uuid(),name:"MODELLO Negra",category:"Beer",unit_cost:1.35,uom:"cs",active:true},
+      {id:uuid(),name:"Nice Slice",category:"Beer",unit_cost:1.54,uom:"cs",active:true},
+      {id:uuid(),name:"ROUGE",category:"Beer",unit_cost:1.35,uom:"cs",active:true},
+      {id:uuid(),name:"STELLA",category:"Beer",unit_cost:1.29,uom:"cs",active:true},
+      {id:uuid(),name:"ABSOLUT",category:"Vodka",unit_cost:0.00,uom:"btl",active:true},
+      {id:uuid(),name:"GREYGOOSE",category:"Vodka",unit_cost:38.29,uom:"btl",active:true},
+      {id:uuid(),name:"KETTLE ONE - Grapefruit & Rose",category:"Vodka",unit_cost:31.77,uom:"btl",active:true},
+      {id:uuid(),name:"KING ST. VODKA",category:"Vodka",unit_cost:31.77,uom:"btl",active:true},
+      {id:uuid(),name:"STOLI RAZBERRY",category:"Vodka",unit_cost:26.89,uom:"btl",active:true},
+      {id:uuid(),name:"STOLI VANILLA",category:"Vodka",unit_cost:26.89,uom:"btl",active:true},
+      {id:uuid(),name:"BUSHMILLS",category:"Whiskey",unit_cost:22.19,uom:"btl",active:true},
+      {id:uuid(),name:"CANADIAN CLUB",category:"Whiskey",unit_cost:22.69,uom:"btl",active:true},
+      {id:uuid(),name:"CHIVAS",category:"Whiskey",unit_cost:35.00,uom:"btl",active:true},
+      {id:uuid(),name:"CROWN ROYAL",category:"Whiskey",unit_cost:37.36,uom:"btl",active:true},
+      {id:uuid(),name:"DEWARS",category:"Whiskey",unit_cost:23.75,uom:"btl",active:true},
+      {id:uuid(),name:"GLENFIDICH",category:"Whiskey",unit_cost:49.35,uom:"btl",active:true},
+      {id:uuid(),name:"GLENLIVET",category:"Whiskey",unit_cost:49.35,uom:"btl",active:true},
+      {id:uuid(),name:"JACK DANIELS",category:"Whiskey",unit_cost:30.00,uom:"btl",active:true},
+      {id:uuid(),name:"JAMESON",category:"Whiskey",unit_cost:35.07,uom:"btl",active:true},
+      {id:uuid(),name:"JOHNNY BLACK",category:"Whiskey",unit_cost:45.36,uom:"btl",active:true},
+      {id:uuid(),name:"JOHNNY RED",category:"Whiskey",unit_cost:22.18,uom:"btl",active:true},
+      {id:uuid(),name:"KNOB CREEK",category:"Whiskey",unit_cost:35.00,uom:"btl",active:true},
+      {id:uuid(),name:"MAKERS",category:"Whiskey",unit_cost:33.98,uom:"btl",active:true},
+      {id:uuid(),name:"MC CALLAN 12YRS",category:"Whiskey",unit_cost:45.87,uom:"btl",active:true},
+      {id:uuid(),name:"SEAGRAMS",category:"Whiskey",unit_cost:18.98,uom:"btl",active:true},
+      {id:uuid(),name:"MEZCAL JOVEN",category:"Tequila",unit_cost:35.00,uom:"btl",active:true},
+      {id:uuid(),name:"PATRON SILVER",category:"Tequila",unit_cost:40.01,uom:"btl",active:true},
+      {id:uuid(),name:"BEEFEATER",category:"Gin",unit_cost:23.39,uom:"btl",active:true},
+      {id:uuid(),name:"BOMBAY SAPPHIRE",category:"Gin",unit_cost:29.99,uom:"btl",active:true},
+      {id:uuid(),name:"GORDON",category:"Gin",unit_cost:31.99,uom:"btl",active:true},
+      {id:uuid(),name:"TANQUERY",category:"Gin",unit_cost:29.68,uom:"btl",active:true},
+      {id:uuid(),name:"BAC ARDI LIMON",category:"Rum",unit_cost:18.99,uom:"btl",active:true},
+      {id:uuid(),name:"BACARDI",category:"Rum",unit_cost:19.39,uom:"btl",active:true},
+      {id:uuid(),name:"CAPTAIN MORGAN",category:"Rum",unit_cost:19.39,uom:"btl",active:true},
+      {id:uuid(),name:"GOSELINGS",category:"Rum",unit_cost:19.86,uom:"btl",active:true},
+      {id:uuid(),name:"MALIBU",category:"Rum",unit_cost:24.00,uom:"btl",active:true},
+      {id:uuid(),name:"MYERS",category:"Rum",unit_cost:30.07,uom:"btl",active:true},
+      {id:uuid(),name:"AMARETTO DISARONO",category:"Cordials/Other",unit_cost:32.00,uom:"btl",active:true},
+      {id:uuid(),name:"BALIEYS",category:"Cordials/Other",unit_cost:31.89,uom:"btl",active:true},
+      {id:uuid(),name:"BLUE CURACO",category:"Cordials/Other",unit_cost:11.01,uom:"btl",active:true},
+      {id:uuid(),name:"CACHACA",category:"Cordials/Other",unit_cost:21.11,uom:"btl",active:true},
+      {id:uuid(),name:"CAMPARI",category:"Cordials/Other",unit_cost:29.00,uom:"btl",active:true},
+      {id:uuid(),name:"CHAMBORD",category:"Cordials/Other",unit_cost:29.99,uom:"btl",active:true},
+      {id:uuid(),name:"COINTREAU",category:"Cordials/Other",unit_cost:45.27,uom:"btl",active:true},
+      {id:uuid(),name:"DRAMBIUE",category:"Cordials/Other",unit_cost:39.49,uom:"btl",active:true},
+      {id:uuid(),name:"FRANGELICO",category:"Cordials/Other",unit_cost:26.49,uom:"btl",active:true},
+      {id:uuid(),name:"GINGER BEER",category:"Cordials/Other",unit_cost:0.00,uom:"btl",active:true},
+      {id:uuid(),name:"GODIVA WHITE CHOCOLATE",category:"Cordials/Other",unit_cost:19.90,uom:"btl",active:true},
+      {id:uuid(),name:"GODVIVA  MILK CHOCOLATE & DARK",category:"Cordials/Other",unit_cost:20.59,uom:"btl",active:true},
+      {id:uuid(),name:"GRAND MARNIER",category:"Cordials/Other",unit_cost:42.28,uom:"btl",active:true},
+      {id:uuid(),name:"HENNESSY VSOP",category:"Cordials/Other",unit_cost:45.00,uom:"btl",active:true},
+      {id:uuid(),name:"KAHLUA",category:"Cordials/Other",unit_cost:26.04,uom:"btl",active:true},
+      {id:uuid(),name:"KEDEM DRY",category:"Cordials/Other",unit_cost:36.46,uom:"btl",active:true},
+      {id:uuid(),name:"KEDEM SWEET",category:"Cordials/Other",unit_cost:36.46,uom:"btl",active:true},
+      {id:uuid(),name:"MARTINI & ROSSI DRY / Foro DRY",category:"Cordials/Other",unit_cost:9.69,uom:"btl",active:true},
+      {id:uuid(),name:"MARTINI & ROSSI SWEET",category:"Cordials/Other",unit_cost:9.69,uom:"btl",active:true},
+      {id:uuid(),name:"PEACH SNAPS",category:"Cordials/Other",unit_cost:9.00,uom:"btl",active:true},
+      {id:uuid(),name:"PEPPERMINT SCHNAPPS",category:"Cordials/Other",unit_cost:9.00,uom:"btl",active:true},
+      {id:uuid(),name:"PERNOD",category:"Cordials/Other",unit_cost:32.11,uom:"btl",active:true},
+      {id:uuid(),name:"REMY MARTIN VSOP",category:"Cordials/Other",unit_cost:60.50,uom:"btl",active:true},
+      {id:uuid(),name:"ROMANO SAMBUCA",category:"Cordials/Other",unit_cost:27.69,uom:"btl",active:true},
+      {id:uuid(),name:"RUMPLEMINTS",category:"Cordials/Other",unit_cost:26.49,uom:"btl",active:true},
+      {id:uuid(),name:"SANDYMAN PORT",category:"Cordials/Other",unit_cost:26.00,uom:"btl",active:true},
+      {id:uuid(),name:"SOUR APPLE",category:"Cordials/Other",unit_cost:9.00,uom:"btl",active:true},
+      {id:uuid(),name:"SOUTHREN COMFORT",category:"Cordials/Other",unit_cost:24.06,uom:"btl",active:true},
+      {id:uuid(),name:"TRIPLE SEC",category:"Cordials/Other",unit_cost:4.24,uom:"btl",active:true},
+    ];
+
+    const counts={}; counts[lastMonth]={}; counts[thisMonth]={};
+    items.forEach((it,idx)=>{ counts[lastMonth][it.id]=idx%2===0?4:7; counts[thisMonth][it.id]=idx%2===0?5:6; });
+    return {version:2,items,counts,monthPrices:{},settings:{monthsToShow:12, categories: DEFAULT_CATEGORIES.slice()}};
+  }
+  function loadState(){
+    try{ const raw=localStorage.getItem(STORE_KEY); if(!raw) return defaultState();
+      const s=JSON.parse(raw); if(!s||typeof s!=="object") return defaultState();
+      if(s.version !== 2) return defaultState();
+      if(!Array.isArray(s.items)) s.items=[]; if(!s.counts||typeof s.counts!=="object") s.counts={};
+      if(!s.monthPrices || typeof s.monthPrices!=="object") s.monthPrices = {};
+      // migrate older builds that used cost_overrides
+      if(s.cost_overrides && typeof s.cost_overrides==="object"){
+        Object.keys(s.cost_overrides).forEach(m=>{
+          s.monthPrices[m] = Object.assign({}, s.cost_overrides[m]);
+        });
+        delete s.cost_overrides;
+      }
+      if(!s.settings) s.settings={monthsToShow:12, categories: DEFAULT_CATEGORIES.slice(), lastCategory: null};
+      if(s.settings.lastCategory === undefined) s.settings.lastCategory = null;
+      if(!Array.isArray(s.settings.categories) || s.settings.categories.length===0){
+        s.settings.categories = DEFAULT_CATEGORIES.slice();
+      }else{
+        // merge in any new defaults without overwriting user's custom list
+        DEFAULT_CATEGORIES.forEach(c => { if(!s.settings.categories.includes(c)) s.settings.categories.push(c); });
+      }
+      return s;
+    }catch(e){ return defaultState(); }
+  }
+  let state=loadState();
+  let currentTab="items";
+  let selectedMonth=null;
+
+  function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); $("#pillItems").textContent=String(state.items.filter(i=>i.active).length); }
+  function mkBtn(text, cls="", onClick=()=>{}){ const b=document.createElement("button"); b.className="btn"+(cls?" "+cls:""); b.textContent=text; b.onclick=onClick; return b; }
+
+  
+  function buildMonthOptions(){
+    const sel=$("#monthSelect");
+    sel.innerHTML="";
+    const now = new Date();
+    const cur = yyyymmFromDate(now);
+
+    // "Real months" = months that have saved data (counts or price snapshots)
+    const real = new Set();
+    if(state && state.counts){
+      Object.keys(state.counts).forEach(k=>{ if(isValidMonth(k)) real.add(k); });
+    }
+    if(state && state.monthPrices){
+      Object.keys(state.monthPrices).forEach(k=>{ if(isValidMonth(k)) real.add(k); });
+    }
+
+    // Always include current month + next 3 months so you can start ahead
+    const futureMonths = [cur, addMonths(cur,1), addMonths(cur,2), addMonths(cur,3)];
+    futureMonths.forEach(m=>real.add(m));
+
+    // If selectedMonth exists but isn't in the set (edge case), include it
+    if(selectedMonth && isValidMonth(selectedMonth)) real.add(selectedMonth);
+
+    const months = Array.from(real).sort(); // ascending YYYY-MM
+    months.forEach(m=>{
+      const opt=document.createElement("option");
+      opt.value=m;
+      opt.textContent=m;
+      sel.appendChild(opt);
+    });
+
+    // Default selection: keep selectedMonth if available, else current
+    if(!selectedMonth || !real.has(selectedMonth)){
+      selectedMonth = cur;
+    }
+    sel.value = selectedMonth;
+    $("#pillMonth").textContent = selectedMonth;
+  }
+
+  function setTitle(t){ $("#mainTitle").textContent=t; }
+  function setActions(nodes){ const host=$("#mainActions"); host.innerHTML=""; nodes.forEach(n=>host.appendChild(n)); }
+
+
+  function ensureMonthPriceSnapshot(month){
+    if(!month) return;
+    if(!state.monthPrices) state.monthPrices = {};
+    if(!state.monthPrices[month]){
+      state.monthPrices[month] = {};
+      // snapshot current prices for all items (active+inactive) so history stays consistent
+      state.items.forEach(it=>{
+        state.monthPrices[month][it.id] = Number(it.unit_cost||0);
+      });
+      saveState(); cloudSaveState();
+    }
+  }
+
+  function getUnitCostForMonth(it, month){
+    ensureMonthPriceSnapshot(month);
+    const snap = state.monthPrices?.[month]?.[it.id];
+    return (snap === undefined || snap === null) ? Number(it.unit_cost||0) : Number(snap||0);
+  }
+
+  function setUnitCostForMonthAndCurrent(it, month, value){
+    const v = Number(value||0);
+    // update current going-forward price
+    it.unit_cost = v;
+    // update this month's snapshot
+    ensureMonthPriceSnapshot(month);
+    setUnitCostForMonthAndCurrent(it, month, v);
+    saveState(); cloudSaveState();
+  }
+
+function computeTotalsForMonth(month){
+    const byCategory={}; let grandTotal=0;
+    const items=state.items.filter(i=>i.active);
+    const counts=(state.counts[month]||{});
+    for(const it of items){
+      const c=Number(counts[it.id]??0);
+      const uc=getUnitCostForMonth(it, month);
+      const v=c*uc;
+      const cat=it.category||"Other";
+      byCategory[cat]=(byCategory[cat]||0)+v;
+      grandTotal+=v;
+    }
+    return {byCategory, grandTotal: round2(grandTotal)};
+  }
+
+  function render(){
+    $("#pillMonth").textContent=selectedMonth||"—";
+    $("#pillItems").textContent=String(state.items.filter(i=>i.active).length);
+    $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===currentTab));
+    if(currentTab==="items") renderItems();
+    if(currentTab==="counts") renderCounts();
+    if(currentTab==="reports") renderReports();
+    
+  }
+
+  function renderItems(){
+    setTitle("Items");
+    const addBtn=mkBtn("➕ Add Item","primary",()=>openItemEditor());
+    const body=$("#mainBody");
+    body.innerHTML=`
+      <div class="row" style="justify-content:space-between; align-items:flex-end;">
+        <div class="field" style="min-width:260px;">
+          <label>Search</label>
+          <input id="itemSearch" placeholder="Type to filter items…" />
+        </div>
+        <div class="field" style="min-width:220px;">
+          <label>Show</label>
+          <select id="itemFilter">
+            <option value="active" selected>Active items</option>
+            <option value="all">All items</option>
+            <option value="inactive">Inactive only</option>
+          </select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="hint">If the Actions buttons are tight, scroll the table left/right — the Actions column stays pinned on the right.</div>
+      <div class="divider"></div>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:240px;">Item</th>
+              <th style="min-width:120px;">Category</th>
+              <th style="min-width:80px;">UOM</th>
+              <th class="right" style="min-width:120px;">Unit Cost</th>
+              <th style="min-width:160px;">Status</th>
+              <th class="right sticky-r" style="min-width:180px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTbody"></tbody>
+        </table>
+      </div>
+    `;
+
+    const search=$("#itemSearch");
+    const filter=$("#itemFilter");
+
+    const rerenderRows=()=>{
+      const q=(search.value||"").trim().toLowerCase();
+      const f=filter.value;
+      const rows=state.items.slice().sort((a,b)=>{ const d=catOrderIndex(a.category)-catOrderIndex(b.category); return d!==0?d:(a.name||"").localeCompare(b.name||""); })
+        .filter(it=>{
+          if(f==="active" && !it.active) return false;
+          if(f==="inactive" && it.active) return false;
+          if(!q) return true;
+          return (it.name||"").toLowerCase().includes(q) || (it.category||"").toLowerCase().includes(q);
+        });
+
+      const tb=$("#itemsTbody"); tb.innerHTML="";
+      rows.forEach(it=>tb.appendChild(itemRow(it)));
+      if(rows.length===0) tb.innerHTML=`<tr><td colspan="6" style="color:rgba(255,255,255,.7);font-size:13px;">No matching items.</td></tr>`;
+    };
+
+    search.addEventListener("input", rerenderRows);
+    filter.addEventListener("change", rerenderRows);
+    rerenderRows();
+  }
+
+  function itemRow(it){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><b>${escapeHtml(it.name)}</b></td>
+      <td>${escapeHtml(it.category||"")}</td>
+      <td class="mono">${escapeHtml(it.uom||"")}</td>
+      <td class="right mono">${fmtMoney(it.unit_cost)}</td>
+      <td>${it.active?`<span class="badge good">Active</span>`:`<span class="badge bad">Inactive</span>`}</td>
+      <td class="right sticky-r"></td>
+    `;
+    const td=tr.lastElementChild;
+    const edit=mkBtn("Edit","",()=>openItemEditor(it));
+    const toggle=mkBtn(it.active?"Deactivate":"Activate","",()=>{
+      it.active=!it.active; saveState(); cloudSaveState(); render(); toast(it.active?"Item activated":"Item deactivated");
+    });
+    const del=mkBtn("Delete","danger",()=>{
+      if(!confirm(`Delete "${it.name}"?\n\nThis removes it completely (including stored counts).`)) return;
+      Object.keys(state.counts).forEach(m=>{ if(state.counts[m]) delete state.counts[m][it.id]; });
+      state.items=state.items.filter(x=>x.id!==it.id);
+      saveState(); cloudSaveState(); render(); toast("Item deleted");
+    });
+    const wrap=document.createElement("div");
+    wrap.style.display="flex"; wrap.style.gap="8px"; wrap.style.justifyContent="flex-end"; wrap.style.flexWrap="wrap";
+    wrap.append(edit,toggle,del);
+    td.appendChild(wrap);
+    return tr;
+  }
+
+  function openItemEditor(existing=null){
+    const isEdit=!!existing;
+    const it=existing?{...existing}:{id:uuid(),name:"",category:"Spirits",unit_cost:0,uom:"btl",active:true};
+    const body=$("#mainBody");
+    body.innerHTML=`
+      <div class="row">
+        <div class="field" style="min-width:320px; flex:1;">
+          <label>Item Name</label>
+          <input id="editName" placeholder="e.g., Tito's 1L" />
+        </div>
+        <div class="field" style="min-width:180px;">
+          <label>Category</label>
+          <select id="editCategory"></select>
+        </div>
+        <div class="field" style="min-width:120px;">
+          <label>UOM</label>
+          <input id="editUom" placeholder="btl/cs/keg" />
+        </div>
+        <div class="field" style="min-width:160px;">
+          <label>Unit Cost</label>
+          <input id="editCost" type="number" step="0.01" min="0" />
+        </div>
+        <div class="field" style="min-width:160px;">
+          <label>Status</label>
+          <select id="editActive">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="actions">
+        <button class="btn" id="cancelEdit">Cancel</button>
+        <button class="btn primary" id="saveEdit">${isEdit?"Save Changes":"Add Item"}</button>
+      </div>
+    `;
+    const catSel=$("#editCategory");
+    // Build category dropdown from managed list + "Add new…"
+    const cats = (state.settings.categories || []).slice().sort((a,b)=>a.localeCompare(b));
+    cats.forEach(c=>{ const opt=document.createElement("option"); opt.value=c; opt.textContent=c; catSel.appendChild(opt); });
+    const addOpt=document.createElement("option"); addOpt.value="__ADD__"; addOpt.textContent="➕ Add new category…"; catSel.appendChild(addOpt);
+    $("#editName").value=it.name;
+    $("#editCategory").value = it.category || (state.settings.lastCategory || (state.settings.categories||[])[0] || "Beer");
+
+    $("#editCategory").onchange=()=>{
+      if($("#editCategory").value==="__ADD__"){
+        const name = prompt("New category name (e.g., White Wine, Vodka, Gin):");
+        if(!name){ $("#editCategory").value = it.category || (state.settings.lastCategory || (state.settings.categories||[])[0] || "Beer"); return; }
+        const clean = name.trim();
+        if(!clean){ $("#editCategory").value = it.category || (state.settings.lastCategory || (state.settings.categories||[])[0] || "Beer"); return; }
+        if(!state.settings.categories.includes(clean)) state.settings.categories.push(clean);
+        saveState(); cloudSaveState();
+        // rebuild dropdown
+        openItemEditor(existing);
+      }
+    };
+    $("#editUom").value=it.uom||"";
+    $("#editCost").value=Number(it.unit_cost||0);
+    $("#editActive").value=String(!!it.active);
+
+    $("#cancelEdit").onclick=()=>renderItems();
+    $("#saveEdit").onclick=()=>{
+      const name=($("#editName").value||"").trim();
+      if(!name){ toast("Item name is required"); return; }
+      it.name=name;
+      it.category=($("#editCategory").value==="__ADD__" ? (it.category||"Beer") : $("#editCategory").value);
+      state.settings.lastCategory = it.category;
+      it.uom=($("#editUom").value||"").trim();
+      it.unit_cost=Number($("#editCost").value||0);
+      it.active=$("#editActive").value==="true";
+
+      if(isEdit){
+        const idx=state.items.findIndex(x=>x.id===existing.id);
+        state.items[idx]=it;
+        toast("Item updated");
+      }else{
+        state.items.push(it);
+        toast("Item added");
+      }
+      saveState(); cloudSaveState();
+      renderItems();
+    };
+  }
+
+  
+  function printBlankSheet(){
+    const month = selectedMonth || "—";
+    // Use same sorted active items as Counts view
+    const items=state.items.filter(i=>i.active).slice().sort((a,b)=>{ const d=catOrderIndex(a.category)-catOrderIndex(b.category); return d!==0?d:(a.name||"").localeCompare(b.name||""); });
+
+    // Group by category
+    const groups = {};
+    items.forEach(it=>{
+      const cat = it.category || "Uncategorized";
+      if(!groups[cat]) groups[cat]=[];
+      groups[cat].push(it);
+    });
+
+    const cats = (state.settings.categories || DEFAULT_CATEGORIES).filter(c=>groups[c] && groups[c].length>0);
+    // Build printable HTML
+    const style = `
+      <style>
+        @page { size: letter; margin: 0.5in; }
+        body{ font-family: Arial, Helvetica, sans-serif; color:#111; }
+        .footer{ position: fixed; bottom: -0.15in; left: 0; right: 0; font-size:10px; color:#666; display:flex; justify-content:space-between; }
+        .pageno:after{ content: counter(page); }
+        h1{ font-size:16px; margin:0 0 6px; }
+        .meta{ font-size:12px; margin:0 0 14px; }
+        .cat{ margin-top:16px; page-break-inside: avoid; }
+        .cat h2{ font-size:13px; margin:0 0 6px; padding:6px 8px; background:#f2f4f7; border:1px solid #d0d7de; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border:1px solid #d0d7de; padding:6px 8px; font-size:11px; }
+        th{ background:#fafbfc; text-align:left; }
+        .count{ width:110px; }
+        .uom{ width:70px; }
+        .notes{ width:180px; }
+        .small{ color:#555; font-size:10px; }
+      </style>
+    `;
+
+    const header = `
+      <h1>Faculty House — Monthly Beverage Inventory Count Sheet</h1>
+      <div class="meta">
+        <b>Inventory Month:</b> ${month} &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Date Counted:</b> ____________ &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Counted By:</b> __________________________
+        <div class="small" style="margin-top:6px;">Enter counts on this sheet, then enter them in the app in the same order (category → alphabetical).</div>
+      </div>
+    `;
+
+    let body = header;
+
+    cats.forEach(cat=>{
+      const rows = groups[cat].slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+      body += `<div class="cat"><h2>${escapeHtml(cat)}</h2>`;
+      body += `<table><thead><tr>
+        <th>Item</th><th class="uom">UOM</th><th class="count">Count</th><th class="notes">Notes</th>
+      </tr></thead><tbody>`;
+      rows.forEach(it=>{
+        body += `<tr>
+          <td>${escapeHtml(it.name||"")}</td>
+          <td>${escapeHtml(it.uom||"")}</td>
+          <td>__________</td>
+          <td></td>
+        </tr>`;
+      });
+      body += `</tbody></table></div>`;
+    });
+
+    const win = window.open("", "_blank");
+    win.document.open();
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8">${style}<title>Inventory Count Sheet</title></head><body>${body}<div class="footer"><div>Faculty House</div><div class="pageno">Page </div></div>
+<div id="authModal" class="modal" style="display:none;">
+  <div class="modalCard">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <h3 style="margin:0;">Sign in (Cloud Sync)</h3>
+      <button id="authClose" class="btn">✕</button>
+    </div>
+    <p class="hint" style="margin:8px 0 12px;">
+      Enter your email and you’ll receive a magic link. Click it to sign in.
+    </p>
+    <div class="row" style="gap:10px; align-items:flex-end;">
+      <div class="field" style="flex:1;">
+        <label>Email</label>
+        <input id="authEmail" placeholder="name@columbia.edu" />
+      </div>
+      <button id="authSend" class="btn primary">Send Link</button>
+    </div>
+    <div class="divider"></div>
+    <p class="hint" id="authMsg" style="margin:0;"></p>
+  </div>
+</div>
+
+</body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
+
+
+  
+  function copyPreviousMonthCounts(){
+    const month = selectedMonth;
+    if(!month){ toast("Pick a month first"); return; }
+    const pmonth = prevMonth(month);
+    if(!confirm(`Copy counts from ${pmonth} into ${month}?\n\nThis overwrites the current month's counts (you can still edit after).`)) return;
+
+    if(!state.counts[month]) state.counts[month] = {};
+    if(!state.counts[pmonth]) state.counts[pmonth] = {};
+
+    // Copy only active items, so deactivated items don't get reintroduced.
+    const activeItems = state.items.filter(i=>i.active);
+    ensureMonthPriceSnapshot(month);
+
+    activeItems.forEach(it=>{
+      const prev = Number(state.counts[pmonth][it.id] ?? 0);
+      // Enforce whole bottles for non-spirits on copy as well
+      const cat = it.category || "Uncategorized";
+      const val = isSpiritType(cat) ? prev : Math.round(prev);
+      state.counts[month][it.id] = val;
+    });
+
+    saveState(); cloudSaveState();
+    toast("Previous month copied");
+    // Re-render counts screen
+    currentTab="counts";
+    render();
+  }
+
+
+  function isMonthFinalized(month){
+    return !!(state.finalizedMonths && state.finalizedMonths[month]);
+  }
+  function setMonthFinalized(month, val){
+    if(!state.finalizedMonths || typeof state.finalizedMonths!=="object") state.finalizedMonths = {};
+    if(val) state.finalizedMonths[month] = TrueLike(true);
+    else delete state.finalizedMonths[month];
+  }
+  function TrueLike(v){ return v===true ? true : !!v; }
+
+function renderCounts(){
+    setTitle("Counts");
+
+        
+
+    
+        
+    const body=$("#mainBody");
+    const month=selectedMonth; 
+
+    // ===== Counts Actions =====
+    const btnFinalize = isMonthFinalized(month)
+      ? mkBtn("🔓 Unlock Month","",async ()=>{
+          if(!confirm(`Unlock ${month}?`)) return;
+          delete state.finalizedMonths[month];
+          await saveState();
+          render();
+        })
+      : mkBtn("✅ Finalize Month","",async ()=>{
+          if(!confirm(`Finalize ${month}?`)) return;
+          state.finalizedMonths[month] = true;
+          await saveState();
+          render();
+        });
+
+    const btnCopyPrev = mkBtn("↩︎ Copy Prev Month","",()=>copyPreviousMonthCounts());
+    const btnBart     = mkBtn("🖨️ Bartender Sheet","",()=>printBlankSheet());
+    const btnMgr      = mkBtn("🧾 Manager Review","",()=>printManagerReviewSheet());
+    const btnAcct     = mkBtn("🧾 Accounting Sheet","",()=>openAccountingSheet());
+    const btnSave     = mkBtn("💾 Save Counts","primary",async ()=>{
+        await saveState();
+        toast("Counts saved");
+        render();
+    });
+
+    setActions([btnFinalize, btnCopyPrev, btnBart, btnMgr, btnAcct, btnSave]);
+    // ===========================
+
+    // Actions (Counts)
+    const finalizeBtn = isMonthFinalized(month)
+      ? mkBtn("🔓 Unlock Month","",async ()=>{
+          if(!confirm(`Unlock ${month}? This allows edits.`)) return;
+          if(!state.finalizedMonths) state.finalizedMonths = {};
+          delete state.finalizedMonths[month];
+          await saveState();
+          toast("Month unlocked");
+          render();
+        })
+      : mkBtn("✅ Finalize Month","",async ()=>{
+          if(!confirm(`Finalize ${month}? This will make it read-only by default.`)) return;
+          if(!state.finalizedMonths) state.finalizedMonths = {};
+          state.finalizedMonths[month] = true;
+          await saveState();
+          toast("Month finalized");
+          render();
+        });
+
+                    
+        if(!month){ body.innerHTML=`<div class="hint">Pick a month.</div>`; return; }
+    const pmonth=prevMonth(month);
+    if(!state.counts[month]) state.counts[month]={};
+    if(!state.counts[pmonth]) state.counts[pmonth]={};
+
+    const allItems = state.items.filter(i=>i.active).slice().sort((a,b)=>{ 
+      const d=catOrderIndex(a.category)-catOrderIndex(b.category); 
+      return d!==0?d:(a.name||"").localeCompare(b.name||""); 
+    });
+
+    body.innerHTML = `
+      <div class="row" style="justify-content:space-between; align-items:flex-end;">
+        <div class="field" style="min-width:260px; flex:1;">
+          <label>Search (optional)</label>
+          <input id="countSearch" placeholder="Type to filter items…" />
+          <div class="hint">Entry order stays category → alphabetical. Keyboard: <b>Enter</b> next, <b>Shift+Enter</b> previous, <b>↑/↓</b> move.</div>
+        </div>
+        <div class="field" style="min-width:220px;">
+          <label>Month</label>
+          <div class="pill" style="justify-content:space-between;">
+            <span class="mono">${month}</span>
+            <span style="color:var(--muted);">Prev: <span class="mono">${pmonth}</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="kpis" id="countsKpis"></div>
+
+      <div class="divider"></div>
+
+      <div id="countsGroups"></div>
+    `;
+
+    const search=$("#countSearch");
+    const groupsHost=$("#countsGroups");
+
+    function getFilteredItems(){
+      const q=(search.value||"").trim().toLowerCase();
+      if(!q) return allItems;
+      return allItems.filter(it => (it.name||"").toLowerCase().includes(q) || (it.category||"").toLowerCase().includes(q));
+    }
+
+    function computeGroupedTotals(items){
+      const totalsByCat = {};
+      const prevByCat = {};
+      let totalCur=0, totalPrev=0;
+
+      items.forEach(it=>{
+        const cat = it.category || "Uncategorized";
+        const prev = Number((state.counts[pmonth]||{})[it.id] ?? 0);
+        const cur  = Number((state.counts[month]||{})[it.id] ?? 0);
+        const uc   = getUnitCostForMonth(it, month);
+        const prevVal = prev * uc;
+        const curVal  = cur * uc;
+
+        totalsByCat[cat] = (totalsByCat[cat]||0) + curVal;
+        prevByCat[cat]   = (prevByCat[cat]||0) + prevVal;
+        totalCur += curVal;
+        totalPrev += prevVal;
+      });
+
+      // reporting rollups
+      const wineCur = (totalsByCat["White Wine"]||0)+(totalsByCat["Red Wine"]||0)+(totalsByCat["Sparkling Wine"]||0);
+      const winePrev = (prevByCat["White Wine"]||0)+(prevByCat["Red Wine"]||0)+(prevByCat["Sparkling Wine"]||0);
+      const beerCur = (totalsByCat["Beer"]||0);
+      const beerPrev = (prevByCat["Beer"]||0);
+      const spiritsCur = (totalsByCat["Vodka"]||0)+(totalsByCat["Whiskey"]||0)+(totalsByCat["Tequila"]||0)+(totalsByCat["Gin"]||0)+(totalsByCat["Rum"]||0)+(totalsByCat["Cordials/Other"]||0);
+      const spiritsPrev = (prevByCat["Vodka"]||0)+(prevByCat["Whiskey"]||0)+(prevByCat["Tequila"]||0)+(prevByCat["Gin"]||0)+(prevByCat["Rum"]||0)+(prevByCat["Cordials/Other"]||0);
+
+      return {totalsByCat, prevByCat, totalCur, totalPrev, wineCur, winePrev, beerCur, beerPrev, spiritsCur, spiritsPrev};
+    }
+
+    function renderKpis(items){
+      const t = computeGroupedTotals(items);
+      const kpis = $("#countsKpis");
+      kpis.innerHTML = `
+        <div class="kpi"><div class="t">Grand Total Value</div><div class="v">${fmtMoney(t.totalCur)}</div><div class="s">Prev: ${fmtMoney(t.totalPrev)} | Δ ${fmtMoney(t.totalCur - t.totalPrev)}</div></div>
+        <div class="kpi"><div class="t">Wine Total</div><div class="v">${fmtMoney(t.wineCur)}</div><div class="s">Prev: ${fmtMoney(t.winePrev)} | Δ ${fmtMoney(t.wineCur - t.winePrev)}</div></div>
+        <div class="kpi"><div class="t">Beer Total</div><div class="v">${fmtMoney(t.beerCur)}</div><div class="s">Prev: ${fmtMoney(t.beerPrev)} | Δ ${fmtMoney(t.beerCur - t.beerPrev)}</div></div>
+        <div class="kpi"><div class="t">Spirits Total</div><div class="v">${fmtMoney(t.spiritsCur)}</div><div class="s">Prev: ${fmtMoney(t.spiritsPrev)} | Δ ${fmtMoney(t.spiritsCur - t.spiritsPrev)}</div></div>
+      `;
+    }
+
+    function makeRow(it){
+      const cat = it.category || "Uncategorized";
+      const prev = Number((state.counts[pmonth]||{})[it.id] ?? 0);
+      const cur  = Number((state.counts[month]||{})[it.id] ?? 0);
+      const variance = cur - prev;
+
+      const row = document.createElement("div");
+      row.style.display="grid";
+      row.style.gridTemplateColumns="1.6fr 110px 140px 110px 120px 140px";
+      row.style.gap="10px";
+      row.style.alignItems="center";
+      row.style.padding="10px 8px";
+      row.style.borderBottom="1px solid rgba(255,255,255,.08)";
+
+      row.innerHTML = `
+        <div style="min-width:0;">
+          <div style="font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(it.name||"")}</div>
+          <div class="hint" style="margin-top:2px;">${escapeHtml(cat)} • <span class="mono">${escapeHtml(it.uom||"")}</span></div>
+        </div>
+        <div class="right mono" data-prev>${fmtNum(prev)}</div>
+        <div class="right" data-inputcell></div>
+        <div class="right mono" data-var>${variance===0?"0":(variance>0?("+"+fmtNum(variance)):fmtNum(variance))}</div>
+        <div class="right" data-costcell></div>
+        <div class="right mono" data-line>${fmtMoney(cur*getUnitCostForMonth(it, month))}</div>
+      `;
+
+      const inputCell = row.querySelector("[data-inputcell]");
+      const inp = document.createElement("input");
+      inp.type="number";
+      inp.inputMode="decimal";
+      inp.value=String(cur);
+      inp.dataset.itemid = it.id;
+      inp.dataset.category = cat;
+
+      // Spirits allow decimals; Wine/Beer require whole numbers
+      if(isSpiritType(cat)){
+        inp.step = "0.01";
+        inp.placeholder = "0.00";
+      }else{
+        inp.step = "1";
+        inp.placeholder = "0";
+      }
+      inp.style.textAlign="right";
+      inp.style.fontWeight="800";
+      inp.style.fontSize="14px";
+      inp.style.padding="10px 10px";
+
+      function normalizeIfNeeded(finalize=false){
+        const v = Number(inp.value||0);
+        if(!isSpiritType(cat)){ // must be integer
+          const isInt = Number.isInteger(v);
+          if(!isInt){
+            inp.style.borderColor = "rgba(255,204,102,.65)";
+            if(finalize){
+              const rounded = Math.round(v);
+              inp.value = String(rounded);
+              state.counts[month][it.id] = rounded;
+              toast("Wine/Beer must be whole bottles — rounded.");
+            }
+          }else{
+            inp.style.borderColor = "";
+          }
+        }else{
+          inp.style.borderColor = "";
+        }
+      }
+
+      if(isMonthFinalized(month)){ inp.disabled=true; inp.style.opacity="0.6"; }
+      inp.addEventListener("input", ()=>{
+        const v = Number(inp.value||0);
+        state.counts[month][it.id] = v;
+
+        const prevNow = Number((state.counts[pmonth]||{})[it.id] ?? 0);
+        const varianceNow = v - prevNow;
+        row.querySelector("[data-var]").textContent = varianceNow===0?"0":(varianceNow>0?("+"+fmtNum(varianceNow)):fmtNum(varianceNow));
+        row.querySelector("[data-line]").textContent = fmtMoney(v*getUnitCostForMonth(it, month));
+
+        normalizeIfNeeded(false);
+        renderKpis(getFilteredItems());
+      });
+
+      inp.addEventListener("blur", ()=> normalizeIfNeeded(true));
+
+      // Keyboard navigation
+      inp.addEventListener("keydown", (e)=>{
+        const key = e.key;
+        if(key === "Enter" || key === "ArrowDown" || key === "ArrowUp"){
+          e.preventDefault();
+          const inputs = Array.from(document.querySelectorAll('input[data-itemid]'));
+          const idx = inputs.indexOf(inp);
+          if(idx === -1) return;
+          let nextIdx = idx;
+          if(key === "ArrowDown" || (key==="Enter" && !e.shiftKey)) nextIdx = Math.min(inputs.length-1, idx+1);
+          if(key === "ArrowUp" || (key==="Enter" && e.shiftKey)) nextIdx = Math.max(0, idx-1);
+          inputs[nextIdx].focus();
+          inputs[nextIdx].select();
+        }
+      });
+
+      
+      // Unit cost (per-month override)
+      const costCell = row.querySelector("[data-costcell]");
+      const costInp = document.createElement("input");
+      costInp.type="number";
+      costInp.step="0.01";
+      costInp.min="0";
+      costInp.value = String(getUnitCostForMonth(it, month));
+      costInp.dataset.costid = it.id;
+      costInp.style.textAlign="right";
+      costInp.style.padding="8px 10px";
+      costInp.style.fontSize="12px";
+      costInp.style.fontWeight="700";
+      costInp.title = "Unit cost for this month (overrides master price)";
+      costInp.addEventListener("input", ()=>{
+        const v = Number(costInp.value||0);
+        setUnitCostForMonthAndCurrent(it, month, v);
+        // refresh line value immediately
+        const curNow = Number(state.counts[month][it.id] ?? 0);
+        row.querySelector("[data-line]").textContent = fmtMoney(curNow*v);
+        renderKpis(getFilteredItems());
+      });
+      costCell.appendChild(costInp);
+
+      inputCell.appendChild(inp);
+      return row;
+    }
+
+    function renderGroups(){
+      const items = getFilteredItems();
+      renderKpis(items);
+
+      // group
+      const groups = {};
+      items.forEach(it=>{
+        const cat = it.category || "Uncategorized";
+        if(!groups[cat]) groups[cat]=[];
+        groups[cat].push(it);
+      });
+
+      const cats = (state.settings.categories || DEFAULT_CATEGORIES)
+        .filter(c=>groups[c] && groups[c].length>0);
+
+      groupsHost.innerHTML = "";
+      cats.forEach(cat=>{
+        const card = document.createElement("div");
+        card.className="card";
+        card.style.marginBottom="12px";
+        card.innerHTML = `
+          <div class="hd"><h2>${escapeHtml(cat)}</h2></div>
+          <div class="bd" style="padding:0;">
+            <div style="display:grid; grid-template-columns:1.6fr 110px 140px 110px 120px 140px; gap:10px; padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); color:var(--muted); font-size:12px;">
+              <div>Item</div>
+              <div class="right">Prev</div>
+              <div class="right">This Month</div>
+              <div class="right">Var</div>
+              <div class="right">Unit Cost</div>
+              <div class="right">Line Value</div>
+            </div>
+            <div data-rows></div>
+          </div>
+        `;
+        const rowsHost = card.querySelector("[data-rows]");
+        groups[cat].slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(it=> rowsHost.appendChild(makeRow(it)));
+        groupsHost.appendChild(card);
+      });
+
+      // focus first input (only if you are not typing in Search)
+      if(!renderGroups._didFocusOnce){
+        const active = document.activeElement;
+        const typingInSearch = active && active.id === "countSearch";
+        if(!typingInSearch){
+          const first = groupsHost.querySelector('input[data-itemid]');
+          if(first){ first.focus(); first.select(); renderGroups._didFocusOnce=true; }
+        }
+      }
+    }
+
+    search.addEventListener("input", ()=>{
+      renderGroups();
+    });
+
+    renderGroups();
+  }
+
+  function printManagerReviewSheet(){
+    const month = selectedMonth || "—";
+    const pmonth = prevMonth(selectedMonth || yyyymmFromDate(new Date()));
+    const items=state.items.filter(i=>i.active).slice().sort((a,b)=>{ const d=catOrderIndex(a.category)-catOrderIndex(b.category); return d!==0?d:(a.name||"").localeCompare(b.name||""); });
+
+    const countsCur = (state.counts[selectedMonth]||{});
+    const countsPrev = (state.counts[pmonth]||{});
+
+    const groups = {};
+    items.forEach(it=>{
+      const cat = it.category || "Uncategorized";
+      if(!groups[cat]) groups[cat]=[];
+      groups[cat].push(it);
+    });
+
+    const cats = (state.settings.categories || DEFAULT_CATEGORIES).filter(c=>groups[c] && groups[c].length>0);
+
+    // totals
+    const totals=computeTotalsForMonth(selectedMonth);
+    const wineTotal=(totals.byCategory["White Wine"]||0)+(totals.byCategory["Red Wine"]||0)+(totals.byCategory["Sparkling Wine"]||0);
+    const beerTotal=(totals.byCategory["Beer"]||0);
+    const spiritsTotal=(totals.byCategory["Vodka"]||0)+(totals.byCategory["Whiskey"]||0)+(totals.byCategory["Tequila"]||0)+(totals.byCategory["Gin"]||0)+(totals.byCategory["Rum"]||0)+(totals.byCategory["Cordials/Other"]||0);
+
+    const style = `
+      <style>
+        @page { size: letter; margin: 0.5in; }
+        body{ font-family: Arial, Helvetica, sans-serif; color:#111; }
+        .footer{ position: fixed; bottom: -0.15in; left: 0; right: 0; font-size:10px; color:#666; display:flex; justify-content:space-between; }
+        .pageno:after{ content: counter(page); }
+        h1{ font-size:16px; margin:0 0 6px; }
+        .meta{ font-size:12px; margin:0 0 14px; }
+        .kpis{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin: 10px 0 14px; }
+        .kpi{ border:1px solid #d0d7de; padding:8px 10px; border-radius:10px; }
+        .kpi .t{ font-size:11px; color:#444; }
+        .kpi .v{ font-size:14px; font-weight:800; margin-top:4px; }
+        .cat{ margin-top:14px; page-break-inside: avoid; }
+        .cat h2{ font-size:13px; margin:0 0 6px; padding:6px 8px; background:#f2f4f7; border:1px solid #d0d7de; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border:1px solid #d0d7de; padding:6px 8px; font-size:11px; }
+        th{ background:#fafbfc; text-align:left; }
+        .right{ text-align:right; }
+      </style>
+    `;
+
+    const header = `
+      <h1>Faculty House — Inventory Review (Prev / This / Variance)</h1>
+      <div class="meta">
+        <b>Inventory Month:</b> ${month} &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Previous Month:</b> ${pmonth} &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Reviewed By:</b> ____________________
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="t">Wine Total</div><div class="v">${fmtMoney(wineTotal)}</div></div>
+        <div class="kpi"><div class="t">Beer Total</div><div class="v">${fmtMoney(beerTotal)}</div></div>
+        <div class="kpi"><div class="t">Spirits Total</div><div class="v">${fmtMoney(spiritsTotal)}</div></div>
+        <div class="kpi"><div class="t">Grand Total</div><div class="v">${fmtMoney(totals.grandTotal)}</div></div>
+      </div>
+    `;
+
+    let body = header;
+
+    cats.forEach(cat=>{
+      const rows = groups[cat].slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+      body += `<div class="cat"><h2>${escapeHtml(cat)}</h2>`;
+      body += `<table><thead><tr>
+        <th>Item</th><th style="width:70px;">UOM</th>
+        <th class="right" style="width:90px;">Prev</th>
+        <th class="right" style="width:90px;">This</th>
+        <th class="right" style="width:90px;">Var</th>
+      </tr></thead><tbody>`;
+      rows.forEach(it=>{
+        const prev = Number(countsPrev[it.id] ?? 0);
+        const cur  = Number(countsCur[it.id] ?? 0);
+        const varr = cur - prev;
+        body += `<tr>
+          <td>${escapeHtml(it.name||"")}</td>
+          <td>${escapeHtml(it.uom||"")}</td>
+          <td class="right">${fmtNum(prev)}</td>
+          <td class="right">${fmtNum(cur)}</td>
+          <td class="right">${varr===0?"0":(varr>0?("+"+fmtNum(varr)):fmtNum(varr))}</td>
+        </tr>`;
+      });
+      body += `</tbody></table></div>`;
+    });
+
+    const win = window.open("", "_blank");
+    win.document.open();
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8">${style}<title>Manager Review</title></head><body>${body}<div class="footer"><div>Faculty House</div><div class="pageno">Page </div></div></body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
+
+function openAccountingSheet(){
+    const month = selectedMonth || "—";
+    const totals=computeTotalsForMonth(selectedMonth);
+    const wineTotal=(totals.byCategory["White Wine"]||0)+(totals.byCategory["Red Wine"]||0)+(totals.byCategory["Sparkling Wine"]||0);
+    const beerTotal=(totals.byCategory["Beer"]||0);
+    const spiritsTotal=(totals.byCategory["Vodka"]||0)+(totals.byCategory["Whiskey"]||0)+(totals.byCategory["Tequila"]||0)+(totals.byCategory["Gin"]||0)+(totals.byCategory["Rum"]||0)+(totals.byCategory["Cordials/Other"]||0);
+
+    // Build item lines (selected month counts)
+    const m = selectedMonth;
+    const counts = (state.counts[m]||{});
+    const items = state.items.filter(i=>i.active).slice().sort((a,b)=>{ const d=catOrderIndex(a.category)-catOrderIndex(b.category); return d!==0?d:(a.name||"").localeCompare(b.name||""); });
+
+    // Grouped subtotals for Wine types + Beer + Spirits (bundled)
+    const style = `
+      <style>
+        @page { size: letter; margin: 0.55in; }
+        body{ font-family: Arial, Helvetica, sans-serif; color:#111; }
+        .footer{ position: fixed; bottom: -0.15in; left: 0; right: 0; font-size:10px; color:#666; display:flex; justify-content:space-between; }
+        .pageno:after{ content: counter(page); }
+        h1{ font-size:16px; margin:0 0 6px; }
+        .meta{ font-size:12px; margin:0 0 14px; }
+        .kpis{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin: 10px 0 14px; }
+        .kpi{ border:1px solid #d0d7de; padding:8px 10px; border-radius:10px; }
+        .kpi .t{ font-size:11px; color:#444; }
+        .kpi .v{ font-size:14px; font-weight:800; margin-top:4px; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border:1px solid #d0d7de; padding:6px 8px; font-size:11px; }
+        th{ background:#fafbfc; text-align:left; }
+        .right{ text-align:right; }
+        .small{ color:#555; font-size:10px; }
+        .section{ margin-top:14px; }
+      </style>
+    `;
+
+    const header = `
+      <h1>Faculty House — Liquor Inventory Value (Accounting)</h1>
+      <div class="meta">
+        <b>Inventory Month:</b> ${month} &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Prepared By:</b> ____________________ &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Date:</b> ____________
+        <div class="small" style="margin-top:6px;">This sheet provides totals and a detail rollup. Accounting will handle invoice/sales allocations.</div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="t">Wine Total</div><div class="v">${fmtMoney(wineTotal)}</div></div>
+        <div class="kpi"><div class="t">Beer Total</div><div class="v">${fmtMoney(beerTotal)}</div></div>
+        <div class="kpi"><div class="t">Spirits Total</div><div class="v">${fmtMoney(spiritsTotal)}</div></div>
+        <div class="kpi"><div class="t">Grand Total</div><div class="v">${fmtMoney(totals.grandTotal)}</div></div>
+      </div>
+    `;
+
+    // Detail table: Item, Category, Count, Unit Cost, Line Value
+    let rows = "";
+    items.forEach(it=>{
+      const c = Number(counts[it.id] ?? 0);
+      const uc = getUnitCostForMonth(it, m);
+      const line = c * uc;
+      // For reporting, bundle liquor types under "Spirits" label (but keep wine subtypes)
+      let repCat = it.category;
+      if(["Vodka","Whiskey","Tequila","Gin","Rum","Cordials/Other"].includes(repCat)) repCat = "Spirits";
+      rows += `<tr>
+        <td>${escapeHtml(it.name||"")}</td>
+        <td>${escapeHtml(repCat||"")}</td>
+        <td class="right">${fmtNum(c)}</td>
+        <td class="right">${fmtMoney(getUnitCostForMonth(it, m))}</td>
+        <td class="right">${fmtMoney(line)}</td>
+      </tr>`;
+    });
+
+    const detail = `
+      <div class="section">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th style="width:120px;">Reporting Category</th>
+              <th class="right" style="width:90px;">Count</th>
+              <th class="right" style="width:110px;">Unit Cost</th>
+              <th class="right" style="width:120px;">Line Value</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4" class="right">Grand Total</th>
+              <th class="right">${fmtMoney(totals.grandTotal)}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    `;
+
+    const win = window.open("", "_blank");
+    win.document.open();
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8">${style}<title>Accounting Sheet</title></head><body>${header}${detail}<div class="footer"><div>Faculty House</div><div class="pageno">Page </div></div></body></html>`);
+    win.document.close();
+    win.focus();
+  }
+
+function renderReports(){
+
+    setTitle("Reports");
+    const totals=computeTotalsForMonth(selectedMonth);
+    const wineTotal=(totals.byCategory["White Wine"]||0)+(totals.byCategory["Red Wine"]||0)+(totals.byCategory["Sparkling Wine"]||0);
+    const beerTotal=(totals.byCategory["Beer"]||0);
+    const spiritsTotal=(totals.byCategory["Vodka"]||0)+(totals.byCategory["Whiskey"]||0)+(totals.byCategory["Tequila"]||0)+(totals.byCategory["Gin"]||0)+(totals.byCategory["Rum"]||0)+(totals.byCategory["Cordials/Other"]||0);
+    const copyBtn=mkBtn("📋 Copy Total Value","primary",()=>{
+      navigator.clipboard?.writeText(String(totals.grandTotal)).then(()=>toast("Copied total value"),()=>toast("Copy not available"));
+    });
+        
+    const body=$("#mainBody");
+    const catRows=Object.keys(totals.byCategory).sort().map(cat=>({cat,val:totals.byCategory[cat]}));
+    body.innerHTML=`
+      
+      <div class="kpis">
+        <div class="kpi"><div class="t">Month</div><div class="v mono">${selectedMonth||"—"}</div><div class="s">Ending value</div></div>
+        <div class="kpi"><div class="t">Grand Total Inventory Value</div><div class="v">${fmtMoney(totals.grandTotal)}</div><div class="s">Send this to Accounting</div></div>
+        <div class="kpi"><div class="t">Wine Total</div><div class="v">${fmtMoney(wineTotal)}</div><div class="s">White + Red + Sparkling</div></div>
+        <div class="kpi"><div class="t">Beer Total</div><div class="v">${fmtMoney(beerTotal)}</div><div class="s">All beer</div></div>
+      </div>
+      <div class="kpis" style="margin-top:10px;">
+        <div class="kpi"><div class="t">Spirits Total</div><div class="v">${fmtMoney(spiritsTotal)}</div><div class="s">All spirits (bundled)</div></div>
+        <div class="kpi"><div class="t">White Wine</div><div class="v">${fmtMoney(totals.byCategory["White Wine"]||0)}</div><div class="s">Subtotal</div></div>
+        <div class="kpi"><div class="t">Red Wine</div><div class="v">${fmtMoney(totals.byCategory["Red Wine"]||0)}</div><div class="s">Subtotal</div></div>
+        <div class="kpi"><div class="t">Sparkling Wine</div><div class="v">${fmtMoney(totals.byCategory["Sparkling Wine"]||0)}</div><div class="s">Subtotal</div></div>
+      </div>
+      <div class="divider">
+</div>
+      <div class="tablewrap">
+        <table style="min-width:560px;">
+          <thead><tr><th>Category</th><th class="right">Value</th></tr></thead>
+          <tbody>
+            ${catRows.map(r=>`<tr><td><b>${escapeHtml(r.cat)}</b></td><td class="right mono">${fmtMoney(r.val)}</td></tr>`).join("")}
+            <tr><td><b>Total</b></td><td class="right mono"><b>${fmtMoney(totals.grandTotal)}</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+  const _btnReset = $("#btnReset");
+  if(_btnReset) _btnReset.onclick=()=>{ if(!confirm("Reset to demo data? This wipes your local changes.")) return;
+    state=defaultState(); saveState(); cloudSaveState(); buildMonthOptions(); render(); toast("Reset complete");
+  };
+  const _btnExportAll = $("#btnExportAll");
+  if(_btnExportAll) _btnExportAll.onclick=()=>{
+    const m = selectedMonth;
+    const t = computeTotalsForMonth(m);
+    const rows = [["month","category","value"]];
+    Object.keys(t.byCategory).sort().forEach(cat => rows.push([m, cat, round2(t.byCategory[cat])]));
+    rows.push([m, "TOTAL", t.grandTotal]);
+    const csv = rows.map(r => r.map(c => {
+      const s = String(c ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+    }).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `fh_inventory_value_${m}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast("CSV downloaded");
+  };
+
+  $$(".tab").forEach(t=>t.addEventListener("click",()=>{ currentTab=t.dataset.tab; render(); }));
+  $("#monthSelect").addEventListener("change",(e)=>{ selectedMonth=e.target.value; $("#pillMonth").textContent=selectedMonth; ensureMonthPriceSnapshot(selectedMonth); saveState(); cloudSaveState(); render(); });
+
+  buildMonthOptions(); ensureMonthPriceSnapshot(selectedMonth); saveState(); cloudSaveState(); render();
+})();
+</script>
+</body>
+</html>
+  function isValidMonth(s){
+    return typeof s==="string" && /^\d{4}-\d{2}$/.test(s);
+  }
+  function addMonths(yyyymm, delta){
+    const [y,m] = yyyymm.split("-").map(Number);
+    const d = new Date(y, m-1, 1);
+    d.setMonth(d.getMonth()+delta);
+    return yyyymmFromDate(d);
+  }
+
+
