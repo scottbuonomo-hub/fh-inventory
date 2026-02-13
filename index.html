@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FH Liquor Inventory</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>" />
+<style>
+:root{
+  --bg:#070b13; --panel:rgba(16,22,34,.92); --panel2:rgba(12,18,30,.86);
+  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.07);
+  --txt:#eaf0ff; --muted:rgba(234,240,255,.70);
+  --blue:rgba(88,153,255,.95); --green:rgba(56,190,140,.95); --red:rgba(220,90,90,.95);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--txt);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(30,70,160,.35), transparent 60%),
+    radial-gradient(900px 650px at 80% 70%, rgba(30,120,90,.18), transparent 60%),
+    var(--bg);
+}
+.wrap{max-width:1180px; margin:0 auto; padding:22px 18px 36px}
+header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+.brand{display:flex; flex-direction:column; gap:6px}
+.h1{font-size:28px; font-weight:900; letter-spacing:.2px; display:flex; align-items:center; gap:10px}
+.badge{font-size:11px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05)}
+.sub{font-size:13px; color:var(--muted)}
+.topbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+.pill{border:1px solid var(--line); background:rgba(255,255,255,.04); border-radius:999px; padding:9px 12px; font-size:12px; color:var(--muted)}
+.btn{border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--txt); padding:9px 14px; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px}
+.btn:hover{border-color:rgba(255,255,255,.18)}
+.btn.primary{background:rgba(88,153,255,.20); border-color:rgba(88,153,255,.40)}
+.btn.danger{background:rgba(220,90,90,.13); border-color:rgba(220,90,90,.33)}
+.grid{display:grid; grid-template-columns: 320px 1fr; gap:14px}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.side{padding:14px}
+.main{padding:14px}
+.navrow{display:flex; gap:10px; margin-bottom:12px}
+.tab{flex:1; text-align:center; padding:10px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.04); cursor:pointer; font-weight:800; color:var(--muted); font-size:12px;}
+.tab.active{background:rgba(88,153,255,.20); color:var(--txt); border-color:rgba(88,153,255,.35)}
+.sectionTitle{font-weight:900; margin:4px 0 10px; font-size:14px;}
+.hr{height:1px; background:var(--line2); margin:12px 0}
+label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px; font-weight:600;}
+select,input{width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:rgba(0,0,0,.20); color:var(--txt); font-size:13px;}
+.small{font-size:12px; color:var(--muted); line-height:1.5;}
+.kpis{display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; margin:10px 0 12px}
+.kpi{background:var(--panel2); border:1px solid var(--line); border-radius:16px; padding:10px 12px}
+.kpi .t{font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:0.3px;}
+.kpi .v{font-size:18px; font-weight:900; margin-top:4px}
+.kpi .s{font-size:11px; color:var(--muted); margin-top:2px}
+.toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+.toolbar .left{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.toolbar .right{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.hint{font-size:13px; color:var(--muted)}
+.table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px; border:1px solid var(--line); margin-top:12px;}
+.table th,.table td{padding:10px 12px; border-bottom:1px solid var(--line2); vertical-align:middle}
+.table th{text-align:left; font-size:11px; color:var(--muted); background:rgba(255,255,255,.03); text-transform:uppercase; letter-spacing:0.3px; font-weight:800;}
+.table tr:last-child td{border-bottom:none}
+.actions{display:flex; gap:8px; justify-content:flex-end}
+.chip{font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.04); color:var(--muted)}
+.chip.on{border-color:rgba(56,190,140,.35); background:rgba(56,190,140,.13); color:#c9ffe8}
+.group{margin-top:12px; border:1px solid var(--line); border-radius:16px; overflow:hidden}
+.groupHead{padding:10px 12px; background:rgba(255,255,255,.03); border-bottom:1px solid var(--line2); font-weight:900; font-size:13px;}
+.rowItem{display:grid; grid-template-columns: 1.4fr .45fr .55fr .45fr .55fr .6fr; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line2); align-items:center}
+.rowItem:last-child{border-bottom:none}
+.itemName{font-weight:900; font-size:13px;}
+.itemMeta{font-size:11px; color:var(--muted); margin-top:2px}
+.num{text-align:right; font-variant-numeric:tabular-nums}
+.countIn input{text-align:center; font-weight:900; border-radius:12px; font-size:13px;}
+.money input{text-align:center; font-weight:900; border-radius:12px; font-size:12px;}
+.stickyTop{position:sticky; top:0; background:var(--panel); z-index:4; padding-top:8px; padding-bottom:12px;}
+.toast{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:rgba(14,18,28,.96); border:1px solid var(--line); padding:10px 16px; border-radius:999px; font-weight:800; display:none; z-index:9999; font-size:13px;}
+#authModal{position:fixed; inset:0; background:rgba(0,0,0,.60); display:none; align-items:center; justify-content:center; z-index:9999; padding:24px;}
+#authModal .card2{width:min(520px, 100%); background:rgba(20,26,36,.98); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:20px; box-shadow:0 16px 44px rgba(0,0,0,.6);}
+#authModal .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px;}
+#authModal input{flex:1; min-width:240px;}
+@media (max-width:980px){
+  .grid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rowItem{grid-template-columns: 1.2fr .35fr .6fr .35fr .55fr .6fr}
+  header{flex-direction:column; align-items:stretch;}
+  .topbar{justify-content:flex-start;}
+}
+@media print{
+  body{background:white; color:black}
+  header,.side,.topbar,.toolbar,.hint,.toast,#authModal{display:none !important}
+  .wrap{max-width:none; padding:0}
+  .card{border:none; box-shadow:none; background:white}
+  .group{border:1px solid #999}
+  .groupHead{background:#f2f2f2}
+  .rowItem{grid-template-columns: 2fr .6fr .8fr .6fr .8fr .9fr}
+  input{border:1px solid #bbb; background:white; color:black}
+}
+
+.totalsCard{
+  background:rgba(0,0,0,0.28);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  padding:14px 14px 10px 14px;
+  margin-top:16px;
+}
+.totalsTitle{
+  font-weight:800;
+  letter-spacing:.2px;
+  font-size:12px;
+  text-transform:uppercase;
+  color:#cfe0ff;
+  margin-bottom:10px;
+}
+
+/* Actions dropdown */
+.actionsDropdown{position:relative; display:inline-flex; align-items:center;}
+.actionsMenu{
+  position:absolute; right:0; top:44px;
+  background: rgba(18,26,42,.98);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  padding:10px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  min-width: 220px;
+  z-index: 50;
+}
+.actionsMenu.hidden{display:none;}
+.actionsMenu .btn{width:100%; text-align:left; background:rgba(255,255,255,.04); margin-bottom:6px;}
+.actionsMenu .btn:last-child{margin-bottom:0;}
+.actionsMenu .btn.danger{background:rgba(255,107,107,.12);}
+.menuSep{height:1px; background: rgba(255,255,255,.10); margin:8px 2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="h1">🍷 FH Liquor Inventory <span class="badge" id="versionBadge">v3.0</span></div>
+      <div class="sub">Cloud-enabled inventory for Faculty House managers</div>
+    </div>
+    <div class="topbar">
+      <span class="pill" id="monthPill">Month: —</span>
+      <span class="pill" id="itemsPill">Items: —</span>
+      <button class="btn" id="exportBtn">📥 Export CSV</button>
+      <span class="pill" id="cloudStatus">☁️ Checking...</span>
+      <button class="btn" id="authBtn">Sign in</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card side">
+      <div class="sectionTitle">Navigation</div>
+      <div class="navrow">
+        <button class="tab" data-tab="counts">Counts</button>
+        <button class="tab" data-tab="reports">Reports</button>
+        <button class="tab" data-tab="items">Items</button>
+      </div>
+      <div class="hr"></div>
+      <label>Inventory Month</label>
+      <select id="monthSelect"></select>
+      <div class="small" style="margin-top:8px;">Select the month you're counting. Each month's counts are stored separately.</div>
+      <div class="hr"></div>
+      <div class="small"><b>Quick Guide</b><br/>
+      1) Enter monthly counts in <b>Counts</b><br/>
+      2) Print reports in <b>Reports</b> tab<br/>
+      3) Manage items in <b>Items</b> tab</div>
+      <div class="hr"></div>
+      <button class="btn primary" id="cloudSaveBtn" style="width:100%; margin-bottom:8px;">☁️ Save to Cloud</button>
+      <button class="btn" id="cloudLoadBtn" style="width:100%; margin-bottom:8px;">⬇️ Load from Cloud</button>
+      <button class="btn" id="saveLocalBtn" style="width:100%;">💾 Save Locally</button>
+      <div class="small" style="margin-top:8px;">All managers share the same cloud data when signed in with @columbia.edu email.</div>
+    </div>
+
+    <div class="card main" id="mainArea"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="authModal">
+  <div class="card2">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div style="font-weight:900; font-size:16px;">Sign in to Cloud Sync</div>
+      <button class="btn" id="authCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="small" style="margin-top:8px;">Use your <b>@columbia.edu</b> email. We'll send a one-time sign-in link to your inbox.</div>
+    <div class="row">
+      <input id="authEmail" type="email" placeholder="your.name@columbia.edu" />
+      <button class="btn primary" id="authSendBtn">Send Link</button>
+    </div>
+    <div class="small" id="authMsg" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const APP_VERSION = "vPROD-2026-02-13";
+
+const DEFAULT_ITEMS = [
+  {"name": "CAVIT PG", "category": "White Wine", "uom": "btl", "unitCost": 6.11, "id": "1888271f21"},
+  {"name": "KIM CRAWFORD SB large", "category": "White Wine", "uom": "btl", "unitCost": 13.5, "id": "41255383b7"},
+  {"name": "KIM CRAWFORD SB small", "category": "White Wine", "uom": "btl", "unitCost": 13.5, "id": "4eb871caf2"},
+  {"name": "KOSHER CHARD", "category": "White Wine", "uom": "btl", "unitCost": 10.21, "id": "7f39e96247"},
+  {"name": "LOUIS JADOT CHARD", "category": "White Wine", "uom": "btl", "unitCost": 13.09, "id": "e6d3787438"},
+  {"name": "MINUTY ROSE", "category": "White Wine", "uom": "btl", "unitCost": 16.24, "id": "d504f8b967"},
+  {"name": "ROB MONDAVI PRIV CHARD", "category": "White Wine", "uom": "btl", "unitCost": 18.66, "id": "9b6ebcee5b"},
+  {"name": "ROBERT MONDAVI CHARD", "category": "White Wine", "uom": "btl", "unitCost": 14.72, "id": "ef8d52fd64"},
+  {"name": "STAGS LEAP CHARD", "category": "White Wine", "uom": "btl", "unitCost": 19.79, "id": "01bec0fbef"},
+  {"name": "SYCAMORE LANE Chard", "category": "White Wine", "uom": "btl", "unitCost": 6.46, "id": "a398d107b5"},
+  {"name": "SYCAMORE LANE PINOT GRIGIO", "category": "White Wine", "uom": "btl", "unitCost": 8.66, "id": "f515fa5df8"},
+  {"name": "KOSHER CAB", "category": "Red Wine", "uom": "btl", "unitCost": 10.21, "id": "ba701b1501"},
+  {"name": "STAGS LEAP CAB", "category": "Red Wine", "uom": "btl", "unitCost": 23.22, "id": "51d84b8401"},
+  {"name": "SYCAMORE LANE CAB", "category": "Red Wine", "uom": "btl", "unitCost": 5.54, "id": "93a3f7a617"},
+  {"name": "SYCAMORE LANE Merlot", "category": "Red Wine", "uom": "btl", "unitCost": 11.0, "id": "70e08e2e5b"},
+  {"name": "Two Vines PINOT NOIR", "category": "Red Wine", "uom": "btl", "unitCost": 14.09, "id": "bee7ba5aa0"},
+  {"name": "BARON KOSHER CHAMPAGNE", "category": "Sparkling Wine", "uom": "btl", "unitCost": 12.66, "id": "9af3dc26b4"},
+  {"name": "VEUVE CLIQUOT", "category": "Sparkling Wine", "uom": "btl", "unitCost": 27.0, "id": "a308d18561"},
+  {"name": "Yulupa PROSECCO", "category": "Sparkling Wine", "uom": "btl", "unitCost": 13.66, "id": "cc3516887f"},
+  {"name": "Abita Light", "category": "Beer", "uom": "btl", "unitCost": 1.29, "id": "b792b93b9b"},
+  {"name": "AMSTEL", "category": "Beer", "uom": "btl", "unitCost": 1.33, "id": "1323b28317"},
+  {"name": "Angry Orchard", "category": "Beer", "uom": "btl", "unitCost": 1.29, "id": "fdcbae93ca"},
+  {"name": "BLUE MOON", "category": "Beer", "uom": "btl", "unitCost": 1.65, "id": "60e1bc8645"},
+  {"name": "BROOKLYN", "category": "Beer", "uom": "btl", "unitCost": 1.35, "id": "0f63b8eb25"},
+  {"name": "DOG FISH", "category": "Beer", "uom": "btl", "unitCost": 1.54, "id": "a91c0df54c"},
+  {"name": "HEINEKEN", "category": "Beer", "uom": "btl", "unitCost": 1.33, "id": "fc3dbd6709"},
+  {"name": "Lagunitas", "category": "Beer", "uom": "btl", "unitCost": 1.35, "id": "2e44f6a26f"},
+  {"name": "MODELLO Negra", "category": "Beer", "uom": "btl", "unitCost": 1.35, "id": "fee53475cb"},
+  {"name": "Nice Slice", "category": "Beer", "uom": "btl", "unitCost": 1.54, "id": "a520284d8e"},
+  {"name": "ROUGE", "category": "Beer", "uom": "btl", "unitCost": 1.35, "id": "95dd4104a9"},
+  {"name": "STELLA", "category": "Beer", "uom": "btl", "unitCost": 1.29, "id": "704cd43049"},
+  {"name": "ABSOLUT", "category": "Vodka", "uom": "btl", "unitCost": 28.50, "id": "677d8ed03c"},
+  {"name": "GREYGOOSE", "category": "Vodka", "uom": "btl", "unitCost": 38.29, "id": "d4d035d7cb"},
+  {"name": "KETTLE ONE - Grapefruit & Rose", "category": "Vodka", "uom": "btl", "unitCost": 31.77, "id": "c8f15376c7"},
+  {"name": "KING ST. VODKA", "category": "Vodka", "uom": "btl", "unitCost": 31.77, "id": "532f727666"},
+  {"name": "STOLI RAZBERRY", "category": "Vodka", "uom": "btl", "unitCost": 26.89, "id": "fbb218799c"},
+  {"name": "STOLI VANILLA", "category": "Vodka", "uom": "btl", "unitCost": 26.89, "id": "3699758a8d"},
+  {"name": "BUSHMILLS", "category": "Whiskey", "uom": "btl", "unitCost": 22.19, "id": "ab354afdad"},
+  {"name": "CANADIAN CLUB", "category": "Whiskey", "uom": "btl", "unitCost": 22.69, "id": "6c02e63594"},
+  {"name": "CHIVAS", "category": "Whiskey", "uom": "btl", "unitCost": 35.0, "id": "29724287b8"},
+  {"name": "CROWN ROYAL", "category": "Whiskey", "uom": "btl", "unitCost": 37.36, "id": "2ac3a60425"},
+  {"name": "DEWARS", "category": "Whiskey", "uom": "btl", "unitCost": 23.75, "id": "96046d4b74"},
+  {"name": "GLENFIDICH", "category": "Whiskey", "uom": "btl", "unitCost": 49.35, "id": "3caf820ee0"},
+  {"name": "GLENLIVET", "category": "Whiskey", "uom": "btl", "unitCost": 49.35, "id": "c15c957a6a"},
+  {"name": "JACK DANIELS", "category": "Whiskey", "uom": "btl", "unitCost": 30.0, "id": "bb7851c038"},
+  {"name": "JAMESON", "category": "Whiskey", "uom": "btl", "unitCost": 35.07, "id": "747ac4fc08"},
+  {"name": "JOHNNY BLACK", "category": "Whiskey", "uom": "btl", "unitCost": 45.36, "id": "36363c9697"},
+  {"name": "JOHNNY RED", "category": "Whiskey", "uom": "btl", "unitCost": 22.18, "id": "ddd8176a7c"},
+  {"name": "KNOB CREEK", "category": "Whiskey", "uom": "btl", "unitCost": 35.0, "id": "565c2ba168"},
+  {"name": "MAKERS", "category": "Whiskey", "uom": "btl", "unitCost": 33.98, "id": "2eda8171a9"},
+  {"name": "MC CALLAN 12YRS", "category": "Whiskey", "uom": "btl", "unitCost": 45.87, "id": "c2a6642e91"},
+  {"name": "SEAGRAMS", "category": "Whiskey", "uom": "btl", "unitCost": 18.98, "id": "fda515aef4"},
+  {"name": "MEZCAL JOVEN", "category": "Tequila", "uom": "btl", "unitCost": 35.0, "id": "6abd353c4d"},
+  {"name": "PATRON SILVER", "category": "Tequila", "uom": "btl", "unitCost": 40.01, "id": "2c45a36e5e"},
+  {"name": "BEEFEATER", "category": "Gin", "uom": "btl", "unitCost": 23.39, "id": "e6e40d99b0"},
+  {"name": "BOMBAY SAPPHIRE", "category": "Gin", "uom": "btl", "unitCost": 29.99, "id": "8229fa4d99"},
+  {"name": "GORDON", "category": "Gin", "uom": "btl", "unitCost": 31.99, "id": "989192ee9f"},
+  {"name": "TANQUERY", "category": "Gin", "uom": "btl", "unitCost": 29.68, "id": "44c7f7b3db"},
+  {"name": "BACARDI LIMON", "category": "Rum", "uom": "btl", "unitCost": 18.99, "id": "2247dc7b37"},
+  {"name": "BACARDI", "category": "Rum", "uom": "btl", "unitCost": 19.39, "id": "11737c9cea"},
+  {"name": "CAPTAIN MORGAN", "category": "Rum", "uom": "btl", "unitCost": 19.39, "id": "ed2ffd776e"},
+  {"name": "GOSELINGS", "category": "Rum", "uom": "btl", "unitCost": 19.86, "id": "7fe2cfe3d5"},
+  {"name": "MALIBU", "category": "Rum", "uom": "btl", "unitCost": 24.0, "id": "4386874306"},
+  {"name": "MYERS", "category": "Rum", "uom": "btl", "unitCost": 30.07, "id": "d17295f331"},
+  {"name": "AMARETTO DISARONO", "category": "Cordials/Other", "uom": "btl", "unitCost": 32.0, "id": "a819ca7897"},
+  {"name": "BAILEYS", "category": "Cordials/Other", "uom": "btl", "unitCost": 31.89, "id": "1a4f4fb979"},
+  {"name": "BLUE CURACAO", "category": "Cordials/Other", "uom": "btl", "unitCost": 11.01, "id": "1e707aa47f"},
+  {"name": "CACHACA", "category": "Cordials/Other", "uom": "btl", "unitCost": 21.11, "id": "01b2ffb84c"},
+  {"name": "CAMPARI", "category": "Cordials/Other", "uom": "btl", "unitCost": 29.0, "id": "1ad6c9b0d6"},
+  {"name": "CHAMBORD", "category": "Cordials/Other", "uom": "btl", "unitCost": 29.99, "id": "6bffdc978c"},
+  {"name": "COINTREAU", "category": "Cordials/Other", "uom": "btl", "unitCost": 45.27, "id": "b266077a99"},
+  {"name": "DRAMBUIE", "category": "Cordials/Other", "uom": "btl", "unitCost": 39.49, "id": "fd54dc1a1a"},
+  {"name": "FRANGELICO", "category": "Cordials/Other", "uom": "btl", "unitCost": 26.49, "id": "873d837c54"},
+  {"name": "GODIVA WHITE CHOCOLATE", "category": "Cordials/Other", "uom": "btl", "unitCost": 19.9, "id": "1272f70a94"},
+  {"name": "GODIVA MILK & DARK CHOCOLATE", "category": "Cordials/Other", "uom": "btl", "unitCost": 20.59, "id": "1102497c0d"},
+  {"name": "GRAND MARNIER", "category": "Cordials/Other", "uom": "btl", "unitCost": 42.28, "id": "3bc082faf7"},
+  {"name": "HENNESSY VSOP", "category": "Cordials/Other", "uom": "btl", "unitCost": 45.0, "id": "62817c7f7a"},
+  {"name": "KAHLUA", "category": "Cordials/Other", "uom": "btl", "unitCost": 26.04, "id": "1468089292"},
+  {"name": "MARTINI & ROSSI DRY", "category": "Cordials/Other", "uom": "btl", "unitCost": 9.69, "id": "bdd8612a78"},
+  {"name": "MARTINI & ROSSI SWEET", "category": "Cordials/Other", "uom": "btl", "unitCost": 9.69, "id": "0f303a68ec"},
+  {"name": "PEACH SCHNAPPS", "category": "Cordials/Other", "uom": "btl", "unitCost": 9.0, "id": "1638bc8f62"},
+  {"name": "PEPPERMINT SCHNAPPS", "category": "Cordials/Other", "uom": "btl", "unitCost": 9.0, "id": "b2bd9c7f11"},
+  {"name": "PERNOD", "category": "Cordials/Other", "uom": "btl", "unitCost": 32.11, "id": "f47b5ee54f"},
+  {"name": "REMY MARTIN VSOP", "category": "Cordials/Other", "uom": "btl", "unitCost": 60.5, "id": "80bb37c7ee"},
+  {"name": "ROMANO SAMBUCA", "category": "Cordials/Other", "uom": "btl", "unitCost": 27.69, "id": "273b1436bf"},
+  {"name": "RUMPLEMINTZ", "category": "Cordials/Other", "uom": "btl", "unitCost": 26.49, "id": "5044736ed6"},
+  {"name": "SANDEMAN PORT", "category": "Cordials/Other", "uom": "btl", "unitCost": 26.0, "id": "5f238c8b0b"},
+  {"name": "SOUR APPLE", "category": "Cordials/Other", "uom": "btl", "unitCost": 9.0, "id": "23379c7ab1"},
+  {"name": "SOUTHERN COMFORT", "category": "Cordials/Other", "uom": "btl", "unitCost": 24.06, "id": "3832a78057"},
+  {"name": "TRIPLE SEC", "category": "Cordials/Other", "uom": "btl", "unitCost": 4.24, "id": "0b74ca9c7e"}
+];
+
+const DEFAULT_PRICES = {};
+DEFAULT_ITEMS.forEach(it => { DEFAULT_PRICES[it.id] = it.unitCost || 0; });
+
+const CAT_ORDER = ["White Wine", "Red Wine", "Sparkling Wine", "Beer", "Vodka", "Whiskey", "Tequila", "Gin", "Rum", "Cordials/Other"];
+const REPORT_GROUPS = {
+  "Wine": ["White Wine", "Red Wine", "Sparkling Wine"],
+  "Beer": ["Beer"],
+  "Spirits": ["Vodka", "Whiskey", "Tequila", "Gin", "Rum", "Cordials/Other"]
+};
+
+const STORAGE_KEY_LOCAL = "fh_inventory_state_v3";
+
+let state = {
+  items: DEFAULT_ITEMS.map(x => ({...x, active: true})),
+  counts: {},
+  finalized: {},
+  priceByMonth: {},
+  monthsTouched: []
+};
+
+let ui = { tab:"counts", month:"", search:"", show:"active", dirty:false };
+
+/* Helper functions */
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.style.display="none", 2800);
+}
+
+function yyyymmFromDate(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  return `${y}-${m}`;
+}
+
+function addMonths(yyyymm, delta){
+  const [y,m]=yyyymm.split("-").map(Number);
+  const d=new Date(y,m-1,1);
+  d.setMonth(d.getMonth()+delta);
+  return yyyymmFromDate(d);
+}
+
+function isValidMonth(s){ return typeof s==="string" && /^\d{4}-\d{2}$/.test(s); }
+function prevMonth(month){ return addMonths(month,-1); }
+function money(n){ return (Number(n)||0).toLocaleString(undefined,{style:"currency",currency:"USD"}); }
+function num(n){ return (Number(n)||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
+function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+function activeItemsList(){
+  let list = state.items.slice();
+  if(ui.show==="active") list=list.filter(i=>i.active);
+  if(ui.search.trim()){
+    const q=ui.search.trim().toLowerCase();
+    list=list.filter(i=>i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
+  }
+  list.sort((a,b)=>{
+    const ca=CAT_ORDER.indexOf(a.category);
+    const cb=CAT_ORDER.indexOf(b.category);
+    if(ca!==cb) return ca-cb;
+    return a.name.localeCompare(b.name);
+  });
+  return list;
+}
+
+function ensureMonthStructures(month){
+  if(!isValidMonth(month)) return;
+  if(!state.counts[month]) state.counts[month]={};
+  if(!state.monthsTouched.includes(month)){
+    state.monthsTouched.push(month);
+    state.monthsTouched.sort();
+  }
+}
+
+function getCount(month,itemId){ return Number(state.counts?.[month]?.[itemId] ?? 0); }
+function setCount(month,itemId,val){
+  ensureMonthStructures(month);
+  state.counts[month][itemId]=Number(val)||0;
+  markDirty();
+}
+
+function isFinalized(month){ return !!state.finalized?.[month]; }
+function setFinalized(month,on){ state.finalized[month]=!!on; markDirty(); }
+
+function getPriceForMonth(itemId, month){
+  const hist = state.priceByMonth[itemId] || {};
+  if(hist[month]!=null) return Number(hist[month])||0;
+  const months = Object.keys(hist).filter(isValidMonth).sort();
+  for(let i=months.length-1;i>=0;i--){
+    if(months[i] <= month) return Number(hist[months[i]])||0;
+  }
+  return Number(DEFAULT_PRICES[itemId]||0);
+}
+
+function setPriceForMonth(itemId, month, price){
+  if(!state.priceByMonth[itemId]) state.priceByMonth[itemId]={};
+  state.priceByMonth[itemId][month]=Number(price)||0;
+  markDirty();
+}
+
+function markDirty(){
+  ui.dirty=true;
+  document.title = "● FH Liquor Inventory";
+}
+
+function clearDirty(){
+  ui.dirty=false;
+  document.title = "FH Liquor Inventory";
+}
+
+function saveLocal(){
+  localStorage.setItem(STORAGE_KEY_LOCAL, JSON.stringify(state));
+  clearDirty();
+  toast("✓ Saved locally");
+}
+
+function loadLocal(){
+  const raw=localStorage.getItem(STORAGE_KEY_LOCAL);
+  if(!raw) return false;
+  try{
+    const obj=JSON.parse(raw);
+    if(obj && obj.items && obj.counts){
+      state=obj;
+      state.finalized = state.finalized || {};
+      state.priceByMonth = state.priceByMonth || {};
+      state.monthsTouched = state.monthsTouched || [];
+      if(!Array.isArray(state.items) || state.items.length===0) return false;
+      return true;
+    }
+  }catch(e){ console.warn(e); }
+  return false;
+}
+
+/* Supabase Cloud Sync */
+const SUPABASE_URL = "https://yvznkaitcorhfoutfkmk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2em5rYWl0Y29yaGZvdXRma21rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMjk0NTksImV4cCI6MjA4NTgwNTQ1OX0.MbCJiFh_O4WEfiEpVfeRo7FWF9rac-C-eJR4k8rgleE";
+const EMAIL_REDIRECT = window.location.origin + window.location.pathname;
+
+let supaClient=null;
+let cloudReady=false;
+
+function initSupabase(){
+  if(!window.supabase || typeof window.supabase.createClient!=="function"){
+    document.getElementById("cloudStatus").textContent="☁️ Library error";
+    return;
+  }
+  try{
+    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    cloudReady=true;
+    refreshCloudStatus();
+  }catch(e){
+    console.error("Supabase init error:", e);
+    document.getElementById("cloudStatus").textContent="☁️ Init failed";
+  }
+}
+
+async function refreshCloudStatus(){
+  const el=document.getElementById("cloudStatus");
+  const btn=document.getElementById("authBtn");
+  if(!cloudReady || !supaClient){ if(force) { toast("Cloud not available"); } return; }
+  try{
+    const { data } = await supaClient.auth.getSession();
+    const email = data?.session?.user?.email;
+    if(email){
+      el.textContent = "☁️ " + email.split('@')[0];
+      btn.textContent = "Sign out";
+      btn.onclick = signOut;
+    }else{
+      el.textContent = "☁️ Not signed in";
+      btn.textContent = "Sign in";
+      btn.onclick = showAuthModal;
+    }
+  }catch(e){
+    el.textContent="☁️ Error";
+    console.error("Cloud status error:", e);
+  }
+}
+
+async function signOut(){
+  if(!cloudReady || !supaClient) return;
+  try{
+    await supaClient.auth.signOut();
+    toast("Signed out");
+    refreshCloudStatus();
+  }catch(e){
+    toast("Sign out failed");
+    console.error(e);
+  }
+}
+
+function showAuthModal(){
+  document.getElementById("authModal").style.display="flex";
+  document.getElementById("authEmail").focus();
+  document.getElementById("authMsg").textContent = "";
+}
+
+function hideAuthModal(){
+  document.getElementById("authModal").style.display="none";
+}
+
+async function sendMagicLink(){
+  const msg=document.getElementById("authMsg");
+  const email=(document.getElementById("authEmail").value||"").trim();
+  if(!email){ msg.textContent="Please enter an email address."; return; }
+  if(!email.toLowerCase().endsWith("@columbia.edu")){
+    msg.textContent="Please use your @columbia.edu email.";
+    return;
+  }
+  if(!cloudReady || !supaClient){
+    msg.textContent="Cloud not ready. Please refresh the page.";
+    return;
+  }
+  msg.textContent="Sending magic link...";
+  try{
+    const { error } = await supaClient.auth.signInWithOtp({
+      email,
+      options:{ emailRedirectTo: EMAIL_REDIRECT }
+    });
+    if(error){
+      msg.textContent="Error: "+error.message;
+      return;
+    }
+    msg.textContent="✓ Email sent! Check your inbox and click the link to sign in.";
+  }catch(e){
+    msg.textContent="Error: " + (e?.message || String(e));
+    console.error(e);
+  }
+}
+
+async function cloudSave(force=false){
+  if(!cloudReady || !supaClient){
+    toast("Cloud not available");
+    return;
+  }
+  const { data } = await supaClient.auth.getSession();
+  if(!data?.session){
+    toast("Please sign in first");
+    showAuthModal();
+    return;
+  }
+  try{
+    const payload = {
+      id:"main",
+      state_json: state,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supaClient
+      .from("fh_inventory_state")
+      .upsert(payload, { onConflict:"id" });
+    if(error){
+      console.error("Cloud save error:", error);
+      toast("Cloud save failed: " + error.message);
+      return;
+    }
+    saveLocal(); // Also save locally
+    toast("✓ Saved to cloud");
+  }catch(e){
+    console.error("Cloud save exception:", e);
+    toast("Cloud save failed");
+  }
+}
+
+async function cloudLoad(){
+  if(!cloudReady || !supaClient){
+    toast("Cloud not available");
+    return;
+  }
+  const { data } = await supaClient.auth.getSession();
+  if(!data?.session){
+    toast("Please sign in first");
+    showAuthModal();
+    return;
+  }
+  try{
+    const { data: rows, error } = await supaClient
+      .from("fh_inventory_state")
+      .select("state_json")
+      .eq("id","main")
+      .limit(1);
+    if(error){
+      console.error("Cloud load error:", error);
+      toast("Cloud load failed: " + error.message);
+      return;
+    }
+    
+    // If cloud has no saved state yet, seed it from local
+    if(!rows || rows.length===0 || !rows[0]?.state_json){
+      toast("Cloud is empty — seeding from local…");
+      await cloudSave(true);
+      return;
+    }
+if(rows && rows[0] && rows[0].state_json){
+      state = rows[0].state_json;
+      state.finalized = state.finalized || {};
+      state.priceByMonth = state.priceByMonth || {};
+      state.monthsTouched = state.monthsTouched || [];
+      saveLocal();
+      toast("✓ Loaded from cloud");
+      render();
+    }else{
+      toast("No cloud data found (first time setup)");
+    }
+  }catch(e){
+    console.error("Cloud load exception:", e);
+    toast("Cloud load failed");
+  }
+}
+
+/* Month dropdown */
+function buildMonthOptions(){
+  const sel=document.getElementById("monthSelect");
+  const monthPill=document.getElementById("monthPill");
+  const itemsPill=document.getElementById("itemsPill");
+  
+  sel.innerHTML="";
+  const cur=yyyymmFromDate(new Date());
+  const opts = [];
+  for(let i=6;i>=-6;i--){
+    const m=addMonths(cur,i);
+    opts.push(m);
+  }
+  opts.forEach(m=>{
+    const opt=document.createElement("option");
+    opt.value=m;
+    opt.textContent=m;
+    if(m===ui.month) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  
+  monthPill.textContent = "Month: " + ui.month;
+  const activeCount = state.items.filter(i=>i.active).length;
+  itemsPill.textContent = "Items: " + activeCount;
+}
+
+/* Totals calculation */
+function totalsForMonth(month){
+  let wine=0, beer=0, spirits=0;
+  state.items.filter(i=>i.active).forEach(it=>{
+    const c=getCount(month,it.id);
+    const price=getPriceForMonth(it.id, month);
+    const line=c*price;
+    if(REPORT_GROUPS.Wine.includes(it.category)) wine+=line;
+    else if(REPORT_GROUPS.Beer.includes(it.category)) beer+=line;
+    else spirits+=line;
+  });
+  return {wine, beer, spirits, t:wine+beer+spirits};
+}
+
+/* Counts Tab */
+function renderCounts(){
+  const month=ui.month;
+  const prev=prevMonth(month);
+  const finalized=isFinalized(month);
+  
+  const html=[];
+  html.push(`<div class="stickyTop">
+    <div class="toolbar">
+      <div class="left">
+        <div class="hint">Entering counts for <strong>${month}</strong> • Comparing to ${prev}</div>
+      </div>
+      <div class="right actionsDropdown">
+        <button class="btn" id="toggleActionsBtn">Actions ▾</button>
+        <div class="actionsMenu hidden" id="actionsMenu">
+          <button class="btn" onclick="printBartenderSheet('${month}')">🖨️ Print Count Sheet</button>
+          <button class="btn" onclick="printManagerReview('${month}')">🖨️ Print Manager Review</button>
+          <div class="menuSep"></div>
+          <button class="btn" onclick="copyCountsFromPrev('${month}')">📋 Copy from Previous Month</button>
+          <button class="btn" onclick="resetCounts('${month}')">🔄 Reset All Counts to Zero</button>
+          <div class="menuSep"></div>
+          <button class="btn danger" onclick="clearAllCounts('${month}')">🗑️ Clear All Counts</button>
+        </div>
+      </div>
+    </div>
+  </div>`);
+  
+  const list=state.items.filter(i=>i.active).slice().sort((a,b)=>{
+    const ca=CAT_ORDER.indexOf(a.category), cb=CAT_ORDER.indexOf(b.category);
+    if(ca!==cb) return ca-cb;
+    return a.name.localeCompare(b.name);
+  });
+  
+  const grouped=new Map();
+  list.forEach(it=>{ if(!grouped.has(it.category)) grouped.set(it.category, []); grouped.get(it.category).push(it); });
+  const cats=Array.from(grouped.keys()).sort((a,b)=>CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b));
+  
+  cats.forEach(cat=>{
+    html.push(`<div class="group">
+      <div class="groupHead">${escapeHtml(cat)}</div>`);
+    grouped.get(cat).forEach(it=>{
+      const p=getCount(prev,it.id);
+      const c=getCount(month,it.id);
+      const v=c-p;
+      const price=getPriceForMonth(it.id, month);
+      const line=c*price;
+      html.push(`<div class="rowItem">
+        <div>
+          <div class="itemName">${escapeHtml(it.name)}</div>
+          <div class="itemMeta">${escapeHtml(it.uom)}</div>
+        </div>
+        <div class="num">${num(p)}</div>
+        <div class="countIn">
+          <input type="number" step="0.1" value="${c}" onchange="setCount('${month}','${it.id}',this.value); render();" ${finalized?"disabled":""} />
+        </div>
+        <div class="num">${v>0?'+':''}${num(v)}</div>
+        <div class="money">
+          <input type="number" step="0.01" value="${price.toFixed(2)}" onchange="setPriceForMonth('${it.id}','${month}',this.value); render();" />
+        </div>
+        <div class="num">${money(line)}</div>
+      </div>`);
+    });
+    html.push(`</div>`);
+  });
+  
+  const totals=totalsForMonth(month);
+  html.push(`<div class="totalsCard">
+    <div class="totalsTitle">Month Totals for ${month}</div>
+    <div class="kpis">
+      <div class="kpi"><div class="t">Wine</div><div class="v">${money(totals.wine)}</div></div>
+      <div class="kpi"><div class="t">Beer</div><div class="v">${money(totals.beer)}</div></div>
+      <div class="kpi"><div class="t">Spirits</div><div class="v">${money(totals.spirits)}</div></div>
+      <div class="kpi"><div class="t">Grand Total</div><div class="v">${money(totals.t)}</div></div>
+    </div>
+  </div>`);
+  
+  document.getElementById("mainArea").innerHTML=html.join("");
+  
+  // Actions menu toggle
+  const toggleBtn=document.getElementById("toggleActionsBtn");
+  const menu=document.getElementById("actionsMenu");
+  if(toggleBtn && menu){
+    toggleBtn.onclick=(e)=>{
+      e.stopPropagation();
+      menu.classList.toggle("hidden");
+    };
+    document.addEventListener("click", ()=>menu.classList.add("hidden"));
+  }
+}
+
+window.printBartenderSheet=function(month){
+  const list=state.items.filter(i=>i.active).slice().sort((a,b)=>{
+    const ca=CAT_ORDER.indexOf(a.category), cb=CAT_ORDER.indexOf(b.category);
+    if(ca!==cb) return ca-cb;
+    return a.name.localeCompare(b.name);
+  });
+  const grouped=new Map();
+  list.forEach(it=>{ if(!grouped.has(it.category)) grouped.set(it.category, []); grouped.get(it.category).push(it); });
+  const cats=Array.from(grouped.keys()).sort((a,b)=>CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b));
+  const rows=[];
+  cats.forEach(cat=>{
+    rows.push(`<tr style="background:#f0f0f0; font-weight:bold;"><td colspan="3">${escapeHtml(cat)}</td></tr>`);
+    grouped.get(cat).forEach(it=>{
+      rows.push(`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.uom)}</td><td style="border:1px solid #999; height:24px;"></td></tr>`);
+    });
+  });
+  const w=window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Bartender Count Sheet</title><style>
+    body{font-family:Arial; margin:20px;}
+    h1{font-size:20px; margin-bottom:8px;}
+    .sub{color:#666; margin-bottom:16px;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{border:1px solid #999; padding:8px; text-align:left;}
+    th{background:#e0e0e0;}
+  </style></head><body>
+    <h1>FH Liquor Inventory — Bartender Count Sheet</h1>
+    <div class="sub">Month: <b>${escapeHtml(month)}</b> • Fill in counts (bottles). Spirits may be partial (e.g., 1.6).</div>
+    <table><thead><tr><th>Item</th><th>UOM</th><th>This Month Count</th></tr></thead><tbody>${rows.join("")}</tbody></table>
+  </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 250);
+};
+
+window.printManagerReview=function(month){
+  const prev=prevMonth(month);
+  const list=state.items.filter(i=>i.active).slice().sort((a,b)=>{
+    const ca=CAT_ORDER.indexOf(a.category), cb=CAT_ORDER.indexOf(b.category);
+    if(ca!==cb) return ca-cb;
+    return a.name.localeCompare(b.name);
+  });
+  const grouped=new Map();
+  list.forEach(it=>{ if(!grouped.has(it.category)) grouped.set(it.category, []); grouped.get(it.category).push(it); });
+  const cats=Array.from(grouped.keys()).sort((a,b)=>CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b));
+  const rows=[];
+  let tot=0,wine=0,beer=0,spirits=0;
+  cats.forEach(cat=>{
+    rows.push(`<tr style="background:#f0f0f0; font-weight:bold;"><td colspan="6">${escapeHtml(cat)}</td></tr>`);
+    grouped.get(cat).forEach(it=>{
+      const p=getCount(prev,it.id);
+      const c=getCount(month,it.id);
+      const v=c-p;
+      const price=getPriceForMonth(it.id, month);
+      const line=c*price;
+      tot+=line;
+      if(REPORT_GROUPS.Wine.includes(it.category)) wine+=line;
+      else if(REPORT_GROUPS.Beer.includes(it.category)) beer+=line;
+      else spirits+=line;
+      rows.push(`<tr><td>${escapeHtml(it.name)}</td><td style="text-align:right;">${num(p)}</td><td style="text-align:right;">${num(c)}</td><td style="text-align:right;">${v>0?'+':''}${num(v)}</td><td style="text-align:right;">${money(price)}</td><td style="text-align:right;">${money(line)}</td></tr>`);
+    });
+  });
+  const w=window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Manager Review</title><style>
+    body{font-family:Arial; margin:20px;}
+    h1{font-size:20px; margin-bottom:8px;}
+    .sub{color:#666; margin-bottom:16px;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{border:1px solid #999; padding:8px;}
+    th{background:#e0e0e0; text-align:left;}
+    tfoot{font-weight:bold; background:#f9f9f9;}
+  </style></head><body>
+    <h1>FH Liquor Inventory — Manager Review</h1>
+    <div class="sub">Month: <b>${escapeHtml(month)}</b> • Prev: <b>${escapeHtml(prev)}</b></div>
+    <table><thead><tr><th>Item</th><th style="text-align:right;">Prev</th><th style="text-align:right;">This</th><th style="text-align:right;">Var</th><th style="text-align:right;">Unit Cost</th><th style="text-align:right;">Line Value</th></tr></thead>
+    <tbody>${rows.join("")}</tbody>
+    <tfoot>
+      <tr><th colspan="5" style="text-align:right;">Wine Total</th><th style="text-align:right;">${money(wine)}</th></tr>
+      <tr><th colspan="5" style="text-align:right;">Beer Total</th><th style="text-align:right;">${money(beer)}</th></tr>
+      <tr><th colspan="5" style="text-align:right;">Spirits Total</th><th style="text-align:right;">${money(spirits)}</th></tr>
+      <tr><th colspan="5" style="text-align:right;">Grand Total</th><th style="text-align:right;">${money(tot)}</th></tr>
+    </tfoot>
+    </table>
+  </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 250);
+};
+
+window.resetCounts=function(month){
+  if(!confirm("Reset all counts to zero for "+month+"?")) return;
+  state.items.forEach(it=>{ state.counts[month][it.id]=0; });
+  markDirty();
+  render();
+  toast("All counts reset to zero");
+};
+
+window.copyCountsFromPrev=function(month){
+  const prev=prevMonth(month);
+  if(!confirm(`Copy counts from ${prev} to ${month}?`)) return;
+  state.items.forEach(it=>{
+    const val=getCount(prev, it.id);
+    setCount(month, it.id, val);
+  });
+  toast("✓ Copied from previous month");
+  render();
+};
+
+window.clearAllCounts=function(month){
+  if(!confirm("DANGER: Clear all counts for "+month+"? This cannot be undone.")) return;
+  state.items.forEach(it=>{ state.counts[month][it.id]=0; });
+  markDirty();
+  toast("All counts cleared");
+  render();
+};
+
+/* Reports Tab */
+function renderReports(){
+  const month=ui.month;
+  const prev=prevMonth(month);
+  const curT=totalsForMonth(month);
+  const prevT=totalsForMonth(prev);
+  
+  const html=[];
+  html.push(`<div class="stickyTop">
+    <div class="toolbar">
+      <div class="left">
+        <div class="hint">Inventory reports for <strong>${month}</strong></div>
+      </div>
+      <div class="right">
+        <button class="btn primary" onclick="printAccountingSheet('${month}')">🖨️ Print Accounting Totals</button>
+      </div>
+    </div>
+  </div>`);
+  
+  html.push(`<div class="kpis" style="margin-top:20px;">
+    <div class="kpi">
+      <div class="t">Wine Total</div>
+      <div class="v">${money(curT.wine)}</div>
+      <div class="s">Prev: ${money(prevT.wine)}</div>
+    </div>
+    <div class="kpi">
+      <div class="t">Beer Total</div>
+      <div class="v">${money(curT.beer)}</div>
+      <div class="s">Prev: ${money(prevT.beer)}</div>
+    </div>
+    <div class="kpi">
+      <div class="t">Spirits Total</div>
+      <div class="v">${money(curT.spirits)}</div>
+      <div class="s">Prev: ${money(prevT.spirits)}</div>
+    </div>
+    <div class="kpi">
+      <div class="t">Grand Total</div>
+      <div class="v">${money(curT.t)}</div>
+      <div class="s">Prev: ${money(prevT.t)}</div>
+    </div>
+  </div>`);
+  
+  html.push(`<div style="margin-top:24px;">
+    <table class="table">
+      <thead><tr>
+        <th>Category</th>
+        <th style="text-align:right;">This Month</th>
+        <th style="text-align:right;">Prev Month</th>
+        <th style="text-align:right;">Variance</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Wine</td><td class="num">${money(curT.wine)}</td><td class="num">${money(prevT.wine)}</td><td class="num">${money(curT.wine-prevT.wine)}</td></tr>
+        <tr><td>Beer</td><td class="num">${money(curT.beer)}</td><td class="num">${money(prevT.beer)}</td><td class="num">${money(curT.beer-prevT.beer)}</td></tr>
+        <tr><td>Spirits</td><td class="num">${money(curT.spirits)}</td><td class="num">${money(prevT.spirits)}</td><td class="num">${money(curT.spirits-prevT.spirits)}</td></tr>
+      </tbody>
+      <tfoot><tr style="font-weight:900;">
+        <th>Grand Total</th>
+        <th class="num">${money(curT.t)}</th>
+        <th class="num">${money(prevT.t)}</th>
+        <th class="num">${money(curT.t-prevT.t)}</th>
+      </tr></tfoot>
+    </table>
+  </div>`);
+  
+  document.getElementById("mainArea").innerHTML=html.join("");
+}
+
+window.printAccountingSheet=function(month){
+  const prev=prevMonth(month);
+  const curT=totalsForMonth(month);
+  const prevT=totalsForMonth(prev);
+  const w=window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Accounting Totals</title><style>
+    body{font-family:Arial; margin:20px;}
+    h1{font-size:20px; margin-bottom:8px;}
+    .sub{color:#666; margin-bottom:16px;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{border:1px solid #999; padding:8px;}
+    th{background:#e0e0e0; text-align:left;}
+    tfoot{font-weight:bold; background:#f9f9f9;}
+  </style></head><body>
+    <h1>FH Liquor Inventory — Accounting Totals</h1>
+    <div class="sub">Month: <b>${escapeHtml(month)}</b> • Prev: <b>${escapeHtml(prev)}</b></div>
+    <table><thead><tr><th>Category</th><th style="text-align:right;">This Month</th><th style="text-align:right;">Prev Month</th><th style="text-align:right;">Variance</th></tr></thead>
+    <tbody>
+      <tr><td>Wine Total</td><td style="text-align:right;">${money(curT.wine)}</td><td style="text-align:right;">${money(prevT.wine)}</td><td style="text-align:right;">${money(curT.wine-prevT.wine)}</td></tr>
+      <tr><td>Beer Total</td><td style="text-align:right;">${money(curT.beer)}</td><td style="text-align:right;">${money(prevT.beer)}</td><td style="text-align:right;">${money(curT.beer-prevT.beer)}</td></tr>
+      <tr><td>Spirits Total</td><td style="text-align:right;">${money(curT.spirits)}</td><td style="text-align:right;">${money(prevT.spirits)}</td><td style="text-align:right;">${money(curT.spirits-prevT.spirits)}</td></tr>
+    </tbody>
+    <tfoot><tr><th>Grand Total</th><th style="text-align:right;">${money(curT.t)}</th><th style="text-align:right;">${money(prevT.t)}</th><th style="text-align:right;">${money(curT.t-prevT.t)}</th></tr></tfoot>
+    </table>
+  </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 250);
+};
+
+/* Items Tab */
+function renderItems(){
+  const html=[];
+  html.push(`<div class="stickyTop">
+    <div class="toolbar">
+      <div class="left">
+        <input type="search" id="searchBox" placeholder="Search items..." style="width:240px;" value="${escapeHtml(ui.search)}"/>
+        <select id="showFilter" style="width:140px;">
+          <option value="active" ${ui.show==="active"?"selected":""}>Active only</option>
+          <option value="all" ${ui.show==="all"?"selected":""}>All items</option>
+        </select>
+      </div>
+      <div class="right">
+        <button class="btn primary" id="addItemBtn">+ Add Item</button>
+      </div>
+    </div>
+  </div>`);
+  
+  const list=activeItemsList();
+  if(list.length===0){
+    html.push(`<div style="padding:60px; text-align:center; color:var(--muted);">No items found</div>`);
+  }else{
+    html.push(`<table class="table"><thead><tr>
+      <th>Item Name</th>
+      <th>Category</th>
+      <th>UOM</th>
+      <th style="text-align:right;">Unit Cost</th>
+      <th style="text-align:right;">Status</th>
+      <th style="text-align:right;">Actions</th>
+    </tr></thead><tbody>`);
+    list.forEach(it=>{
+      const statusChip = it.active
+        ? `<span class="chip on">Active</span>`
+        : `<span class="chip">Inactive</span>`;
+      html.push(`<tr>
+        <td><strong>${escapeHtml(it.name)}</strong></td>
+        <td>${escapeHtml(it.category)}</td>
+        <td>${escapeHtml(it.uom)}</td>
+        <td class="num">${money(it.unitCost)}</td>
+        <td class="num">${statusChip}</td>
+        <td class="actions">
+          <button class="btn" onclick="editItem('${it.id}')">Edit</button>
+          <button class="btn" onclick="toggleItemActive('${it.id}')">${it.active?"Deactivate":"Activate"}</button>
+        </td>
+      </tr>`);
+    });
+    html.push(`</tbody></table>`);
+  }
+  
+  document.getElementById("mainArea").innerHTML=html.join("");
+  
+  document.getElementById("searchBox").oninput=(e)=>{ ui.search=e.target.value; render(); };
+  document.getElementById("showFilter").onchange=(e)=>{ ui.show=e.target.value; render(); };
+  document.getElementById("addItemBtn").onclick=()=>{
+    const name=prompt("Item name:");
+    if(!name) return;
+    const cat=prompt("Category (e.g., Beer, Vodka, White Wine):");
+    if(!cat) return;
+    const uom=prompt("Unit of measure (e.g., btl, case):", "btl");
+    const cost=parseFloat(prompt("Unit cost:", "0") || "0");
+    const newItem={
+      id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+      name, category:cat, uom:uom||"btl", unitCost:cost||0, active:true
+    };
+    state.items.push(newItem);
+    markDirty();
+    render();
+  };
+}
+
+window.editItem=function(id){
+  const it=state.items.find(x=>x.id===id);
+  if(!it) return;
+  const name=prompt("Item name:", it.name);
+  if(name) it.name=name;
+  const cat=prompt("Category:", it.category);
+  if(cat) it.category=cat;
+  const uom=prompt("Unit of measure:", it.uom);
+  if(uom) it.uom=uom;
+  const cost=prompt("Unit cost:", String(it.unitCost));
+  if(cost!==null) it.unitCost=parseFloat(cost)||0;
+  markDirty();
+  render();
+};
+
+window.toggleItemActive=function(id){
+  const it=state.items.find(x=>x.id===id);
+  if(!it) return;
+  it.active=!it.active;
+  markDirty();
+  render();
+};
+
+/* Export CSV */
+function exportCSV(){
+  const month=ui.month;
+  const prev=prevMonth(month);
+  const header=["Category","Item","UOM","Prev","This","Var","UnitCost","LineValue","Month"];
+  const rows=[header.join(",")];
+  const list=state.items.filter(i=>i.active).slice().sort((a,b)=>{
+    const ca=CAT_ORDER.indexOf(a.category), cb=CAT_ORDER.indexOf(b.category);
+    if(ca!==cb) return ca-cb;
+    return a.name.localeCompare(b.name);
+  });
+  for(const it of list){
+    const p=getCount(prev,it.id);
+    const c=getCount(month,it.id);
+    const v=c-p;
+    const price=getPriceForMonth(it.id, month);
+    const line=c*price;
+    const csvEsc=x=>{ const s=String(x??""); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+    rows.push([it.category,it.name,it.uom,p,c,v,price.toFixed(2),line.toFixed(2),month].map(csvEsc).join(","));
+  }
+  const blob=new Blob([rows.join("\n")],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`FH_Liquor_Inventory_${month}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast("✓ CSV exported");
+}
+
+/* Render */
+function setTab(tab){
+  ui.tab=tab;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  render();
+}
+
+function render(){
+  buildMonthOptions();
+  if(ui.tab==="items") renderItems();
+  else if(ui.tab==="counts") renderCounts();
+  else renderReports();
+}
+
+/* Boot */
+document.addEventListener("DOMContentLoaded", ()=>{
+  loadLocal();
+  
+  const vb=document.getElementById("versionBadge");
+  if(vb) vb.textContent=APP_VERSION;
+  
+  const cur=yyyymmFromDate(new Date());
+  ui.month=cur;
+  ensureMonthStructures(cur);
+  ensureMonthStructures(prevMonth(cur));
+  
+  state.items.forEach(it=>{
+    if(state.counts[cur][it.id]==null) state.counts[cur][it.id]=0;
+    const pm=prevMonth(cur);
+    if(state.counts[pm][it.id]==null) state.counts[pm][it.id]=0;
+  });
+
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+  document.getElementById("monthSelect").onchange=(e)=>{ ui.month=e.target.value; render(); };
+  document.getElementById("exportBtn").onclick=exportCSV;
+  
+  document.getElementById("cloudSaveBtn").onclick=cloudSave;
+  document.getElementById("cloudLoadBtn").onclick=cloudLoad;
+  document.getElementById("saveLocalBtn").onclick=saveLocal;
+  
+  document.getElementById("authCloseBtn").onclick=hideAuthModal;
+  document.getElementById("authSendBtn").onclick=sendMagicLink;
+  document.getElementById("authModal").addEventListener("click",(e)=>{ if(e.target.id==="authModal") hideAuthModal(); });
+  document.getElementById("authEmail").addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMagicLink(); });
+
+  initSupabase();
+  if(cloudReady && supaClient){
+    supaClient.auth.onAuthStateChange(()=>refreshCloudStatus());
+  }
+
+  render();
+});
+</script>
+</body>
+</html>
